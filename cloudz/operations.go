@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -31,6 +32,15 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/importers"
 )
 
+const (
+	toolGoCov       = "github.com/axw/gocov/gocov@v1.0.0"
+	toolGoCovHTML   = "github.com/matm/gocov-html@v0.0.0-20200509184451-71874e2e203b"
+	toolGoLint      = "golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616"
+	toolGoTest      = "github.com/rakyll/gotest@v0.0.6"
+	toolMockGen     = "github.com/golang/mock/mockgen@v1.6.0"
+	toolStaticCheck = "honnef.co/go/tools/cmd/staticcheck@v0.2.2"
+)
+
 // Operations provides a collection of utilities for performing operations.
 type Operations interface {
 	GenerateTimestampAndCommitVersion() string
@@ -38,6 +48,7 @@ type Operations interface {
 	DockerPush(imageAndTag string)
 	GoCrossBuildForLinuxAMD64(workDirPath, packageName, binFilePath string, injectValues map[string]string)
 	GoPackageFunction(handlerFilePath, functionHandlerFileName, packageFilePath string)
+	GoTest(rootDirPath string, packages []string, filter string, force, cover bool, outDirPath string)
 	UploadFile(bucketName, key, contentType string, body []byte)
 	Decrypt(keyAlias string, ciphertext []byte) []byte
 	Encrypt(keyAlias string, plaintext []byte) []byte
@@ -145,6 +156,49 @@ func (o *operationsImpl) GoPackageFunction(binFilePath, functionHandlerFileName,
 	errorz.MaybeMustWrap(err)
 	errorz.MaybeMustWrap(w.Close())
 	filez.MustWriteFile(packageFilePath, 0777, 0666, zipBuf.Bytes())
+}
+
+// GoTest runs Go tests.
+func (o *operationsImpl) GoTest(dirPath string, packages []string, filter string, force, cover bool, outDirPath string) {
+	filez.MustPrepareDir(outDirPath, 0777)
+	rawCoverageFilePath := filepath.Join(outDirPath, "coverage.out")
+	htmlCoverageFilePath := filepath.Join(outDirPath, "coverage.html")
+
+	shellz.NewCommand("go", "mod", "tidy").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "generate", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "build", "-v", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "run", toolGoLint, "-set_exit_status", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "vet", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "run", toolStaticCheck, "./...").SetDir(dirPath).MustRun()
+
+	cmd := shellz.NewCommand(
+		"go", "run", toolGoTest,
+		"-v", "-p", fmt.Sprintf("%v", runtime.NumCPU()),
+		"-race", "-shuffle=on",
+		"-covermode=atomic", fmt.Sprintf("-coverprofile=%v", rawCoverageFilePath))
+
+	if force {
+		cmd.AddParams("-count=1")
+	}
+
+	if len(packages) == 0 {
+		cmd.AddParams("./...")
+	} else {
+		cmd.AddParamsString(packages...)
+	}
+
+	if filter != "" {
+		cmd = cmd.AddParams("--run", filter)
+	}
+
+	cmd.SetDir(dirPath).MustRun()
+
+	if cover {
+		coverageJSON := shellz.NewCommand("go", "run", toolGoCov, "convert", rawCoverageFilePath).SetDir(dirPath).MustOutput()
+		coverageHTML := shellz.NewCommand("go", "run", toolGoCovHTML).SetStdin(strings.NewReader(coverageJSON)).SetDir(dirPath).MustOutput()
+		filez.MustWriteFile(htmlCoverageFilePath, 0777, 0666, []byte(coverageHTML))
+		shellz.NewCommand("open", htmlCoverageFilePath).SetDir(dirPath).MustRun()
+	}
 }
 
 // UploadFile uploads a file to awss3.
