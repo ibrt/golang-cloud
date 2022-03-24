@@ -1,6 +1,9 @@
 package cloudz
 
 import (
+	"fmt"
+	"net/url"
+
 	awscft "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	gocf "github.com/awslabs/goformation/v6/cloudformation"
 	goiam "github.com/awslabs/goformation/v6/cloudformation/iam"
@@ -62,9 +65,16 @@ func (d *PostgresProxyDependencies) MustValidate() {
 	vz.MustValidateStruct(d)
 }
 
+// PostgresProxyLocalMetadata describes the postgres proxy local metadata.
+type PostgresProxyLocalMetadata struct {
+	ExternalURL *url.URL
+	InternalURL *url.URL
+}
+
 // PostgresProxyCloudMetadata describes the postgres proxy cloud metadata.
 type PostgresProxyCloudMetadata struct {
 	Exports CloudExports
+	URL     string
 }
 
 // PostgresProxy describes a postgres proxy.
@@ -78,6 +88,7 @@ type postgresProxyImpl struct {
 	cfgFunc       PostgresProxyConfigFunc
 	deps          *PostgresProxyDependencies
 	cfg           *PostgresProxyConfig
+	localMetadata *PostgresProxyLocalMetadata
 	cloudMetadata *PostgresProxyCloudMetadata
 }
 
@@ -150,7 +161,10 @@ func (p *postgresProxyImpl) IsDeployed() bool {
 
 // UpdateLocalTemplate implements the Plugin interface.
 func (p *postgresProxyImpl) UpdateLocalTemplate(_ *dctypes.Config, _ string) {
-	// nothing to do here
+	p.localMetadata = &PostgresProxyLocalMetadata{
+		ExternalURL: p.deps.Postgres.GetLocalMetadata().ExternalURL,
+		InternalURL: p.deps.Postgres.GetLocalMetadata().InternalURL,
+	}
 }
 
 // GetCloudTemplate implements the Plugin interface.
@@ -247,8 +261,15 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *postgresProxyImpl) UpdateCloudMetadata(stack *awscft.Stack) {
+	exports := NewCloudExports(stack)
+
 	p.cloudMetadata = &PostgresProxyCloudMetadata{
-		Exports: NewCloudExports(stack),
+		Exports: exports,
+		URL: fmt.Sprintf("postgres://%v:%v@%v/%v",
+			p.cfg.Stage.GetName(),
+			p.deps.Postgres.GetConfig().Cloud.Password,
+			exports.GetAtt(PostgresProxyRefDBProxy, PostgresProxyAttEndpoint),
+			p.cfg.Stage.GetName()),
 	}
 }
 

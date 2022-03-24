@@ -13,109 +13,114 @@ import (
 	"github.com/ibrt/golang-validation/vz"
 )
 
-// Mailer constants.
+// Mail constants.
 const (
-	MailerPluginDisplayName = "Mailer"
-	MailerPluginName        = "mailer"
+	MailPluginDisplayName = "Mail"
+	MailPluginName        = "mail"
 
 	mailHogVersion = "1.0.1"
 )
 
 var (
-	_ Mailer = &mailerImpl{}
-	_ Plugin = &mailerImpl{}
+	_ Mail   = &mailImpl{}
+	_ Plugin = &mailImpl{}
 )
 
-// MailerConfigFunc returns the mailer config for a given Stage.
-type MailerConfigFunc func(Stage, *MailerDependencies) *MailerConfig
+// MailConfigFunc returns the mail config for a given Stage.
+type MailConfigFunc func(Stage, *MailDependencies) *MailConfig
 
-// MailerConfig describes the mailer config.
-type MailerConfig struct {
+// MailConfig describes the mail config.
+type MailConfig struct {
 	Stage Stage `validate:"required"`
-	Local *MailerConfigLocal
+	Local *MailConfigLocal
 }
 
-// MustValidate validates the mailer config.
-func (c *MailerConfig) MustValidate(stageTarget StageTarget) {
+// MustValidate validates the mail config.
+func (c *MailConfig) MustValidate(stageTarget StageTarget) {
 	vz.MustValidateStruct(c)
-	errorz.Assertf(stageTarget == Cloud || c.Local != nil, "missing MailerConfig.Local")
+	errorz.Assertf(stageTarget == Cloud || c.Local != nil, "missing MailConfig.Local")
 }
 
-// MailerConfigLocal describes part of the mailer config.
-type MailerConfigLocal struct {
+// MailConfigLocal describes part of the mail config.
+type MailConfigLocal struct {
 	ExternalPort     uint16 `validate:"required"`
 	SMTPExternalPort uint16 `validate:"required"`
 }
 
-// MailerDependencies describes the mailer dependencies.
-type MailerDependencies struct {
+// MailDependencies describes the mail dependencies.
+type MailDependencies struct {
 	OtherDependencies OtherDependencies
 }
 
-// MustValidate validates the mailer dependencies.
-func (d *MailerDependencies) MustValidate() {
+// MustValidate validates the mail dependencies.
+func (d *MailDependencies) MustValidate() {
 	vz.MustValidateStruct(d)
 }
 
-// MailerLocalMetadata describes the mailer local metadata.
-type MailerLocalMetadata struct {
+// MailLocalMetadata describes the mail local metadata.
+type MailLocalMetadata struct {
 	ContainerName string
 	ExternalURL   *url.URL
 	InternalURL   *url.URL
-	ExternalSMTP  *MailerLocalMetadataSMTP
-	InternalSMTP  *MailerLocalMetadataSMTP
+	ExternalSMTP  *MailLocalMetadataSMTP
+	InternalSMTP  *MailLocalMetadataSMTP
 }
 
-// MailerLocalMetadataSMTP describes part of the mailer local metadata.
-type MailerLocalMetadataSMTP struct {
+// MailLocalMetadataSMTP describes part of the mail local metadata.
+type MailLocalMetadataSMTP struct {
 	Username string
 	Password string
 	Host     string
 	Port     uint16
 }
 
-// Mailer describes a mailer.
-type Mailer interface {
+// ToURL converts the MailLocalMetadataSMTP to a "smtp://" URL.
+func (s *MailLocalMetadataSMTP) ToURL() string {
+	return fmt.Sprintf("smtp://%v:%v@%v:%v", s.Username, s.Password, s.Host, s.Port)
+}
+
+// Mail describes a mail.
+type Mail interface {
 	Plugin
-	GetConfig() *MailerConfig
-	GetDependencies() *MailerDependencies
-	GetLocalMetadata() *MailerLocalMetadata
+	GetConfig() *MailConfig
+	GetDependencies() *MailDependencies
+	GetLocalMetadata() *MailLocalMetadata
 }
 
-type mailerImpl struct {
-	cfgFunc       MailerConfigFunc
-	deps          *MailerDependencies
-	cfg           *MailerConfig
-	localMetadata *MailerLocalMetadata
+type mailImpl struct {
+	cfgFunc       MailConfigFunc
+	deps          *MailDependencies
+	cfg           *MailConfig
+	localMetadata *MailLocalMetadata
 }
 
-// NewMailer initializes a new Mailer.
-func NewMailer(cfgFunc MailerConfigFunc, deps *MailerDependencies) Mailer {
+// NewMail initializes a new Mail.
+func NewMail(cfgFunc MailConfigFunc, deps *MailDependencies) Mail {
 	deps.MustValidate()
 
-	return &mailerImpl{
+	return &mailImpl{
 		cfgFunc: cfgFunc,
 		deps:    deps,
 	}
 }
 
 // GetDisplayName implements the Plugin interface.
-func (*mailerImpl) GetDisplayName() string {
-	return MailerPluginDisplayName
+func (*mailImpl) GetDisplayName() string {
+	return MailPluginDisplayName
 }
 
 // GetName implements the Plugin interface.
-func (p *mailerImpl) GetName() string {
-	return MailerPluginName
+func (p *mailImpl) GetName() string {
+	return MailPluginName
 }
 
 // GetInstanceName implements the Plugin interface.
-func (p *mailerImpl) GetInstanceName() *string {
+func (p *mailImpl) GetInstanceName() *string {
 	return nil
 }
 
 // GetDependenciesMap implements the Plugin interface.
-func (p *mailerImpl) GetDependenciesMap() map[Plugin]struct{} {
+func (p *mailImpl) GetDependenciesMap() map[Plugin]struct{} {
 	dependenciesMap := map[Plugin]struct{}{}
 	for _, otherDependency := range p.deps.OtherDependencies {
 		dependenciesMap[otherDependency] = struct{}{}
@@ -124,53 +129,53 @@ func (p *mailerImpl) GetDependenciesMap() map[Plugin]struct{} {
 }
 
 // Configure implements the Plugin interface.
-func (p *mailerImpl) Configure(stage Stage) {
+func (p *mailImpl) Configure(stage Stage) {
 	p.cfg = p.cfgFunc(stage, p.deps)
 	p.cfg.MustValidate(stage.GetTarget())
 }
 
 // GetStage implements the Plugin interface.
-func (p *mailerImpl) GetStage() Stage {
-	errorz.Assertf(p.cfg != nil, "plugin not configured", errorz.Prefix(MailerPluginName))
+func (p *mailImpl) GetStage() Stage {
+	errorz.Assertf(p.cfg != nil, "plugin not configured", errorz.Prefix(MailPluginName))
 	return p.cfg.Stage
 }
 
-// GetConfig implements the Mailer interface.
-func (p *mailerImpl) GetConfig() *MailerConfig {
+// GetConfig implements the Mail interface.
+func (p *mailImpl) GetConfig() *MailConfig {
 	return p.cfg
 }
 
-// GetDependencies implements the Mailer interface.
-func (p *mailerImpl) GetDependencies() *MailerDependencies {
+// GetDependencies implements the Mail interface.
+func (p *mailImpl) GetDependencies() *MailDependencies {
 	return p.deps
 }
 
-// GetLocalMetadata implements the Mailer interface.
-func (p *mailerImpl) GetLocalMetadata() *MailerLocalMetadata {
-	errorz.Assertf(p.localMetadata != nil, "local not deployed", errorz.Prefix(MailerPluginName))
+// GetLocalMetadata implements the Mail interface.
+func (p *mailImpl) GetLocalMetadata() *MailLocalMetadata {
+	errorz.Assertf(p.localMetadata != nil, "local not deployed", errorz.Prefix(MailPluginName))
 	return p.localMetadata
 }
 
 // IsDeployed implements the Plugin interface.
-func (p *mailerImpl) IsDeployed() bool {
+func (p *mailImpl) IsDeployed() bool {
 	return false
 }
 
 // UpdateLocalTemplate implements the Plugin interface.
-func (p *mailerImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
+func (p *mailImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 	containerName := LocalGetContainerName(p)
 
-	p.localMetadata = &MailerLocalMetadata{
+	p.localMetadata = &MailLocalMetadata{
 		ContainerName: containerName,
 		ExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v/api/v2", p.cfg.Local.ExternalPort)),
 		InternalURL:   urlz.MustParse(fmt.Sprintf("http://%v:%v/api/v2", containerName, p.cfg.Local.ExternalPort)),
-		ExternalSMTP: &MailerLocalMetadataSMTP{
+		ExternalSMTP: &MailLocalMetadataSMTP{
 			Username: "",
 			Password: "mailhog",
 			Host:     "localhost",
 			Port:     p.cfg.Local.SMTPExternalPort,
 		},
-		InternalSMTP: &MailerLocalMetadataSMTP{
+		InternalSMTP: &MailLocalMetadataSMTP{
 			Username: "",
 			Password: "mailhog",
 			Host:     containerName,
@@ -205,22 +210,22 @@ func (p *mailerImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 }
 
 // GetCloudTemplate implements the Plugin interface.
-func (p *mailerImpl) GetCloudTemplate(_ string) *gocf.Template {
+func (p *mailImpl) GetCloudTemplate(_ string) *gocf.Template {
 	// nothing to do here
 	return nil
 }
 
 // UpdateCloudMetadata implements the Plugin interface.
-func (p *mailerImpl) UpdateCloudMetadata(_ *awscft.Stack) {
+func (p *mailImpl) UpdateCloudMetadata(_ *awscft.Stack) {
 	// nothing to do here
 }
 
 // BeforeDeployHook implements the Plugin interface.
-func (p *mailerImpl) BeforeDeployHook(_ string) {
+func (p *mailImpl) BeforeDeployHook(_ string) {
 
 }
 
 // AfterDeployHook implements the Plugin interface.
-func (*mailerImpl) AfterDeployHook(_ string) {
+func (*mailImpl) AfterDeployHook(_ string) {
 	// nothing to do here
 }
