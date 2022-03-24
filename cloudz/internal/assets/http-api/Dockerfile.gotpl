@@ -1,7 +1,7 @@
 {{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.HTTPAPIDockerfileTemplateAsset*/ -}}
 FROM golang:{{ .GoVersion }}-alpine
 
-RUN go install github.com/ibrt/golang-lambda/lambdaz/testlambdaz/httpsimulatorz@v0.2.0 && \
+RUN go install github.com/ibrt/golang-lambda/lambdaz/testlambdaz/httpsimulatorz@v0.3.0 && \
 	cp "$(go env GOPATH)/bin/httpsimulatorz" /opt/httpsimulatorz
 
 COPY /config.json /config.json
