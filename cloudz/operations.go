@@ -30,6 +30,8 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boilingcore"
 	"github.com/volatiletech/sqlboiler/v4/drivers"
 	"github.com/volatiletech/sqlboiler/v4/importers"
+
+	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver" // SQLBoiler postgres driver
 )
 
 const (
