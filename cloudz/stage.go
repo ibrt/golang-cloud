@@ -76,5 +76,4 @@ type Stage interface {
 	GetConfig() *StageConfig
 	AsCloudStage() CloudStage
 	AsLocalStage() LocalStage
-	Deploy()
 }

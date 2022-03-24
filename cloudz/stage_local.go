@@ -26,6 +26,8 @@ type LocalStage interface {
 	Stage
 	GetLocalConfig() *LocalStageConfig
 	GetServiceNetworkConfig() map[string]*dctypes.ServiceNetworkConfig
+	Create()
+	Destroy()
 }
 
 type localStageImpl struct {
@@ -104,16 +106,9 @@ func (s *localStageImpl) GetServiceNetworkConfig() map[string]*dctypes.ServiceNe
 	}
 }
 
-// Deploy implements the Stage interface.
-func (s *localStageImpl) Deploy() {
-	for _, svc := range s.localTemplate.Services {
-		if svc.Build.Context != "" {
-			// Note: workaround for docker-compose requiring build directories to always exist, even on "down".
-			errorz.MaybeMustWrap(os.MkdirAll(svc.Build.Context, 0777))
-		}
-	}
-
-	s.runCmd("down", "-v", "--rmi", "local", "--remove-orphans")
+// Create implements the LocalStage interface.
+func (s *localStageImpl) Create() {
+	s.Destroy()
 
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
@@ -128,6 +123,18 @@ func (s *localStageImpl) Deploy() {
 			plugin.AfterDeployHook(s.cfg.App.GetBuildDirPath(plugin))
 		}
 	}
+}
+
+// Destroy implements the LocalStage interface.
+func (s *localStageImpl) Destroy() {
+	for _, svc := range s.localTemplate.Services {
+		if svc.Build.Context != "" {
+			// Note: workaround for docker-compose requiring build directories to always exist, even on "down".
+			errorz.MaybeMustWrap(os.MkdirAll(svc.Build.Context, 0777))
+		}
+	}
+
+	s.runCmd("down", "-v", "--rmi", "local", "--remove-orphans")
 }
 
 func (s *localStageImpl) runCmd(params ...interface{}) {

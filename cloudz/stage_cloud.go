@@ -27,6 +27,7 @@ type CloudStage interface {
 	GetCloudConfig() *CloudStageConfig
 	GetArtifactsKeyPrefix(p Plugin, additionalParts ...string) string
 	IsDeployed() bool
+	Deploy()
 }
 
 type cloudStageImpl struct {
@@ -117,7 +118,7 @@ func (s *cloudStageImpl) GetArtifactsKeyPrefix(p Plugin, additionalParts ...stri
 	return path.Join(append([]string{strings.Join(parts, "-")}, additionalParts...)...)
 }
 
-// Deploy implements the Stage interface.
+// Deploy implements the CloudStage interface.
 func (s *cloudStageImpl) Deploy() {
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
