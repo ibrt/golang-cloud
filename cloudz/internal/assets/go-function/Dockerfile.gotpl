@@ -1,0 +1,21 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.GoFunctionDockerfileTemplateData*/ -}}
+FROM golang:{{ .GoVersion }}-alpine
+
+RUN apk --no-cache add ca-certificates curl git tzdata && \
+git clone https://github.com/cosmtrek/air && cd air && \
+go build -v -trimpath -ldflags="-X main.airVersion={{ .GoVersion }} -X main.goVersion={{ .GoVersion }}" -o air && \
+cp air /usr/local/bin && cd .. && rm -rf air && \
+curl -L -o /usr/bin/aws-lambda-rie 'https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie' && \
+chmod +x /usr/bin/aws-lambda-rie
+
+ENV AWS_LAMBDA_FUNCTION_NAME="{{ .FunctionName }}"
+ENV AWS_LAMBDA_FUNCTION_TIMEOUT="{{ .TimeoutSeconds }}"
+
+VOLUME /root/.cache/go-build
+VOLUME /go/pkg/mod
+VOLUME /src
+
+COPY "/air.toml" "/air.toml"
+WORKDIR /src
+ENTRYPOINT [ "/usr/local/bin/air" ]
+CMD [ "-c", "/air.toml" ]

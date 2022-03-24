@@ -1,0 +1,5 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.HasuraDockerfileTemplateData*/ -}}
+FROM hasura/graphql-engine:v{{ .Version }}.cli-migrations-v3
+
+COPY /hasura-metadata /hasura-metadata
+COPY /hasura-migrations /hasura-migrations

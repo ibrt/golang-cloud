@@ -1,0 +1,11 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.HasuraConsoleDockerEntrypointSHTemplateData*/ -}}
+#!/usr/bin/env bash
+set -e
+
+[ "$#" != "0" ] && exec "$@"
+
+multirun \
+"hasura-cli console --console-port={{ .ConsolePort }} --api-port={{ .ConsoleAPIPort }} --no-browser --skip-update-check" \
+"redir -n localhost:{{ .Port }} {{ .Host }}:{{ .Port }}" \
+"redir -n $(hostname -i):{{ .ConsolePort }} 127.0.0.1:{{ .ConsolePort }}" \
+"redir -n $(hostname -i):{{ .ConsoleAPIPort }} 127.0.0.1:{{ .ConsoleAPIPort }}"

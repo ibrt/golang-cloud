@@ -1,0 +1,15 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.PostgresServersJSONTemplateData*/ -}}
+{
+"Servers": {
+"1": {
+"Name": "{{ .Name }}",
+"Group": "Servers",
+"Port": {{ .Port }},
+"Username": "{{ .Username }}",
+"PassFile": "/pgadmin4/pgpass",
+"Host": "{{ .Host }}",
+"SSLMode": "prefer",
+"MaintenanceDB": "{{ .Database }}"
+}
+}
+}

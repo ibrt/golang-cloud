@@ -1,0 +1,19 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.HasuraConsoleDockerfileTemplateData*/ -}}
+FROM debian:bullseye-slim
+
+RUN apt-get update && apt-get install -y cmake curl git redir xz-utils && \
+git clone --branch 1.0.0 https://github.com/nicolas-van/multirun.git && \
+cd multirun && cmake . && cmake --build . && mv multirun /usr/bin && cd && rm -rf multirun && \
+curl -L -o /usr/bin/hasura-cli "https://github.com/hasura/graphql-engine/releases/download/v{{ .Version }}/cli-hasura-linux-$(dpkg --print-architecture)" && chmod +x /usr/bin/hasura-cli
+
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENV HASURA_GRAPHQL_ENDPOINT="http://localhost:{{ .Port }}"
+ENV HASURA_GRAPHQL_ADMIN_SECRET="{{ .AdminSecret }}"
+ENV HASURA_GRAPHQL_ENABLE_TELEMETRY="false"
+
+VOLUME /hasura
+
+WORKDIR /hasura
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

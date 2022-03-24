@@ -1,0 +1,2 @@
+{{- /*gotype: github.com/ibrt/golang-cloud/cloudz/internal/assets.PostgresPGPassTemplateData*/ -}}
+{{ .Host }}:{{ .Port }}:*:{{ .Username }}:{{ .Password }}
