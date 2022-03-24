@@ -43,7 +43,9 @@ func NewLocalStage(cfg *LocalStageConfig) LocalStage {
 			Version:  "3.8",
 			Services: dctypes.Services{},
 			Networks: map[string]dctypes.NetworkConfig{
-				cfg.App.GetConfig().Name: {},
+				cfg.App.GetConfig().Name: {
+					Name: cfg.App.GetConfig().Name,
+				},
 			},
 			Volumes: map[string]dctypes.VolumeConfig{},
 		},
