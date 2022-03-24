@@ -81,6 +81,7 @@ type PostgresProxyCloudMetadata struct {
 type PostgresProxy interface {
 	Plugin
 	GetConfig() *PostgresProxyConfig
+	GetLocalMetadata() *PostgresProxyLocalMetadata
 	GetCloudMetadata() *PostgresProxyCloudMetadata
 }
 
