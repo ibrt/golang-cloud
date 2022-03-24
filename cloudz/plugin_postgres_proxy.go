@@ -148,6 +148,12 @@ func (p *postgresProxyImpl) GetConfig() *PostgresProxyConfig {
 	return p.cfg
 }
 
+// GetLocalMetadata implements the PostgresProxy interface.
+func (p *postgresProxyImpl) GetLocalMetadata() *PostgresProxyLocalMetadata {
+	errorz.Assertf(p.localMetadata != nil, "local not deployed", errorz.Prefix(PostgresProxyPluginName))
+	return p.localMetadata
+}
+
 // GetCloudMetadata implements the PostgresProxy interface.
 func (p *postgresProxyImpl) GetCloudMetadata() *PostgresProxyCloudMetadata {
 	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(PostgresProxyPluginName))
