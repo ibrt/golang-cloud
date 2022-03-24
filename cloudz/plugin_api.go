@@ -52,6 +52,9 @@ var (
 // APIConfigFunc returns the api config for a given Stage.
 type APIConfigFunc func(Stage, *APIDependencies) *APIConfig
 
+// APIEventHookFunc describes an api event hook.
+type APIEventHookFunc func(API, Event, string)
+
 // APIConfig describes the api config.
 type APIConfig struct {
 	Stage     Stage    `validate:"required"`
@@ -59,6 +62,7 @@ type APIConfig struct {
 	RouteKeys []string `validate:"required"`
 	Local     *APIConfigLocal
 	Cloud     *APIConfigCloud
+	EventHook APIEventHookFunc
 }
 
 // MustValidate validates the api config.
@@ -333,6 +337,10 @@ func (p *apiImpl) EventHook(event Event, buildDirPath string) {
 	switch event {
 	case LocalBeforeCreateEvent:
 		p.localBeforeCreateEventHook(buildDirPath)
+	}
+
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
 	}
 }
 

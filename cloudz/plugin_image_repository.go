@@ -31,11 +31,15 @@ var (
 // ImageRepositoryConfigFunc returns the image repository config for a given Stage.
 type ImageRepositoryConfigFunc func(Stage, *ImageRepositoryDependencies) *ImageRepositoryConfig
 
+// ImageRepositoryEventHookFunc describes a image repository event hook.
+type ImageRepositoryEventHookFunc func(ImageRepository, Event, string)
+
 // ImageRepositoryConfig describes the image repository config.
 type ImageRepositoryConfig struct {
-	Stage Stage  `validate:"required"`
-	Name  string `validate:"required,resource-name"`
-	Cloud *ImageRepositoryConfigCloud
+	Stage     Stage  `validate:"required"`
+	Name      string `validate:"required,resource-name"`
+	Cloud     *ImageRepositoryConfigCloud
+	EventHook ImageRepositoryEventHookFunc
 }
 
 // MustValidate validates the image repository config.
@@ -263,6 +267,8 @@ func (p *imageRepositoryImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *imageRepositoryImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *imageRepositoryImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

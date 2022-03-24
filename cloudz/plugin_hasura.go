@@ -69,6 +69,9 @@ var (
 // HasuraConfigFunc returns the hasura config for a given Stage.
 type HasuraConfigFunc func(Stage, *HasuraDependencies) *HasuraConfig
 
+// HasuraEventHookFunc describes a hasura event hook.
+type HasuraEventHookFunc func(Hasura, Event, string)
+
 // HasuraConfig describes the hasura config.
 type HasuraConfig struct {
 	Stage            Stage `validate:"required"`
@@ -77,6 +80,7 @@ type HasuraConfig struct {
 	Environment      map[string]string
 	Local            *HasuraConfigLocal
 	Cloud            *HasuraConfigCloud
+	EventHook        HasuraEventHookFunc
 }
 
 // MustValidate validates the hasura config.
@@ -613,6 +617,10 @@ func (p *hasuraImpl) EventHook(event Event, buildDirPath string) {
 	case CloudBeforeDeployEvent:
 		p.cloudBeforeDeployEventHook(buildDirPath)
 	}
+
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }
 
 func (p *hasuraImpl) localBeforeCreateEventHook(buildDirPath string) {
@@ -649,10 +657,9 @@ func (p *hasuraImpl) localBeforeCreateEventHook(buildDirPath string) {
 }
 
 func (p *hasuraImpl) localAfterCreateEventHook() {
-	if p.GetStage().GetTarget().IsLocal() {
-		time.Sleep(30 * time.Second)
-		p.ApplyLocalMetadata()
-	}
+	// TODO(ibrt): Use a waiter instead.
+	time.Sleep(30 * time.Second)
+	p.ApplyLocalMetadata()
 }
 
 func (p *hasuraImpl) cloudBeforeDeployEventHook(buildDirPath string) {

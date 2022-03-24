@@ -29,10 +29,14 @@ var (
 // MailConfigFunc returns the mail config for a given Stage.
 type MailConfigFunc func(Stage, *MailDependencies) *MailConfig
 
+// MailEventHookFunc describes a mail event hook.
+type MailEventHookFunc func(Mail, Event, string)
+
 // MailConfig describes the mail config.
 type MailConfig struct {
-	Stage Stage `validate:"required"`
-	Local *MailConfigLocal
+	Stage     Stage `validate:"required"`
+	Local     *MailConfigLocal
+	EventHook MailEventHookFunc
 }
 
 // MustValidate validates the mail config.
@@ -221,6 +225,8 @@ func (p *mailImpl) UpdateCloudMetadata(_ *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *mailImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *mailImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

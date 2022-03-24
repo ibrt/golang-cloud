@@ -39,6 +39,9 @@ var (
 // BucketConfigFunc returns the bucket config for a given Stage.
 type BucketConfigFunc func(Stage, *BucketDependencies) *BucketConfig
 
+// BucketEventHookFunc describes a bucket event hook.
+type BucketEventHookFunc func(Bucket, Event, string)
+
 // BucketConfig describes the bucket config.
 type BucketConfig struct {
 	Stage                 Stage  `validate:"required"`
@@ -46,6 +49,7 @@ type BucketConfig struct {
 	IsPublicAccessEnabled bool
 	Local                 *BucketConfigLocal
 	Cloud                 *BucketConfigCloud
+	EventHook             BucketEventHookFunc
 }
 
 // MustValidate validates the bucket config.
@@ -316,6 +320,8 @@ func (p *bucketImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *bucketImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *bucketImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

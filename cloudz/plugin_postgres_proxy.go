@@ -44,9 +44,13 @@ var (
 // PostgresProxyConfigFunc returns the postgres proxy config for a given Stage.
 type PostgresProxyConfigFunc func(Stage, *PostgresProxyDependencies) *PostgresProxyConfig
 
+// PostgresProxyEventHookFunc describes a postgres proxy event hook.
+type PostgresProxyEventHookFunc func(PostgresProxy, Event, string)
+
 // PostgresProxyConfig describes the postgres proxy config.
 type PostgresProxyConfig struct {
-	Stage Stage `validate:"required"`
+	Stage     Stage `validate:"required"`
+	EventHook PostgresProxyEventHookFunc
 }
 
 // MustValidate validates the postgres proxy config.
@@ -282,6 +286,8 @@ func (p *postgresProxyImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *postgresProxyImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *postgresProxyImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

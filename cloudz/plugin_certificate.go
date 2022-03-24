@@ -25,11 +25,15 @@ var (
 // CertificateConfigFunc returns the certificate for a given Stage.
 type CertificateConfigFunc func(Stage, *CertificateDependencies) *CertificateConfig
 
+// CertificateEventHookFunc describes a certificate event hook.
+type CertificateEventHookFunc func(Certificate, Event, string)
+
 // CertificateConfig describes the certificate config.
 type CertificateConfig struct {
-	Stage Stage  `validate:"required"`
-	Name  string `validate:"required,resource-name"`
-	Cloud *CertificateConfigCloud
+	Stage     Stage  `validate:"required"`
+	Name      string `validate:"required,resource-name"`
+	Cloud     *CertificateConfigCloud
+	EventHook CertificateEventHookFunc
 }
 
 // MustValidate validates the certificate config.
@@ -172,6 +176,8 @@ func (p *certificateImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *certificateImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *certificateImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

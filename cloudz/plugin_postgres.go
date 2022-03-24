@@ -53,11 +53,15 @@ var (
 // PostgresConfigFunc returns the postgres config for a given Stage.
 type PostgresConfigFunc func(Stage, *PostgresDependencies) *PostgresConfig
 
+// PostgresEventHookFunc describes a postgres event hook.
+type PostgresEventHookFunc func(Postgres, Event, string)
+
 // PostgresConfig describes the postgres config.
 type PostgresConfig struct {
-	Stage Stage `validate:"required"`
-	Local *PostgresConfigLocal
-	Cloud *PostgresConfigCloud
+	Stage     Stage `validate:"required"`
+	Local     *PostgresConfigLocal
+	Cloud     *PostgresConfigCloud
+	EventHook PostgresEventHookFunc
 }
 
 // MustValidate validates the postgres config.
@@ -386,6 +390,10 @@ func (p *postgresImpl) EventHook(event Event, buildDirPath string) {
 	switch event {
 	case LocalBeforeCreateEvent:
 		p.localBeforeCreateEvent(buildDirPath)
+	}
+
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
 	}
 }
 

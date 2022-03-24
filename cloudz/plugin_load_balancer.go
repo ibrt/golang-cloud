@@ -39,9 +39,13 @@ var (
 // LoadBalancerConfigFunc returns the load balancer config for a given Stage.
 type LoadBalancerConfigFunc func(Stage, *LoadBalancerDependencies) *LoadBalancerConfig
 
+// LoadBalancerEventHookFunc describes a load balancer event hook.
+type LoadBalancerEventHookFunc func(LoadBalancer, Event, string)
+
 // LoadBalancerConfig describes the load balancer config.
 type LoadBalancerConfig struct {
-	Stage Stage `validate:"required"`
+	Stage     Stage `validate:"required"`
+	EventHook LoadBalancerEventHookFunc
 }
 
 // MustValidate validates the load balancer config.
@@ -265,6 +269,8 @@ func (p *loadBalancerImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *loadBalancerImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *loadBalancerImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

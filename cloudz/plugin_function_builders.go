@@ -19,7 +19,7 @@ var (
 // FunctionBuilder describes a function builder.
 type FunctionBuilder interface {
 	GetLocalServiceConfigVolumes(p Function, buildDirPath string) []dctypes.ServiceVolumeConfig
-	LocalBeforeCreateHook(p Function, buildDirPath string)
+	LocalBeforeCreateEventHook(p Function, buildDirPath string)
 	GetCloudRuntime(p Function) string
 	BuildCloudPackage(p Function, buildDirPath string)
 }
@@ -50,8 +50,8 @@ func (b *goFunctionBuilder) GetLocalServiceConfigVolumes(_ Function, _ string) [
 	}
 }
 
-// LocalBeforeCreateHook implements the FunctionBuilder interface.
-func (b *goFunctionBuilder) LocalBeforeCreateHook(p Function, buildDirPath string) {
+// LocalBeforeCreateEventHook implements the FunctionBuilder interface.
+func (b *goFunctionBuilder) LocalBeforeCreateEventHook(p Function, buildDirPath string) {
 	filez.MustWriteFile(
 		filepath.Join(buildDirPath, "Dockerfile"), 0777, 0666,
 		templatez.MustParseAndExecuteText(

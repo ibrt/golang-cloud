@@ -70,9 +70,13 @@ var (
 // NetworkConfigFunc returns the network config for a given Stage.
 type NetworkConfigFunc func(Stage, *NetworkDependencies) *NetworkConfig
 
+// NetworkEventHookFunc describes a network event hook.
+type NetworkEventHookFunc func(Network, Event, string)
+
 // NetworkConfig describes the network config.
 type NetworkConfig struct {
-	Stage Stage `validate:"required"`
+	Stage     Stage `validate:"required"`
+	EventHook NetworkEventHookFunc
 }
 
 // MustValidate validates the network config.
@@ -404,6 +408,8 @@ func (p *networkImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 }
 
 // EventHook implements the Plugin interface.
-func (p *networkImpl) EventHook(_ Event, _ string) {
-	// nothing to do here
+func (p *networkImpl) EventHook(event Event, buildDirPath string) {
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
+	}
 }

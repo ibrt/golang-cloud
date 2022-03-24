@@ -43,6 +43,9 @@ var (
 // FunctionConfigFunc returns the function config for a given Stage.
 type FunctionConfigFunc func(Stage, *FunctionDependencies) *FunctionConfig
 
+// FunctionEventHookFunc describes a function event hook.
+type FunctionEventHookFunc func(Function, Event, string)
+
 // FunctionConfig describes the function config.
 type FunctionConfig struct {
 	Stage          Stage           `validate:"required"`
@@ -52,6 +55,7 @@ type FunctionConfig struct {
 	Environment    map[string]string
 	Local          *FunctionConfigLocal
 	Cloud          *FunctionConfigCloud
+	EventHook      FunctionEventHookFunc
 }
 
 // MustValidate validates the function config.
@@ -321,16 +325,22 @@ func (p *functionImpl) EventHook(event Event, buildDirPath string) {
 	switch event {
 	case LocalBeforeCreateEvent:
 		p.localBeforeCreateEventHook(buildDirPath)
+	case CloudBeforeDeployEvent:
+		p.cloudBeforeDeployEventHook(buildDirPath)
+	}
+
+	if p.cfg.EventHook != nil {
+		p.cfg.EventHook(p, event, buildDirPath)
 	}
 }
 
 func (p *functionImpl) localBeforeCreateEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
+	p.cfg.Builder.LocalBeforeCreateEventHook(p, buildDirPath)
+}
 
-	if p.cfg.Stage.GetTarget().IsLocal() {
-		p.cfg.Builder.LocalBeforeCreateHook(p, buildDirPath)
-		return
-	}
+func (p *functionImpl) cloudBeforeDeployEventHook(buildDirPath string) {
+	filez.MustPrepareDir(buildDirPath, 0777)
 
 	p.cfg.Builder.BuildCloudPackage(p, buildDirPath)
 	packageContents := filez.MustReadFile(filepath.Join(buildDirPath, FunctionPackageFileName))
