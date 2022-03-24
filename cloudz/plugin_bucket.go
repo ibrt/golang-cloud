@@ -315,12 +315,7 @@ func (p *bucketImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (*bucketImpl) BeforeDeployHook(_ string) {
-	// nothing to do here
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*bucketImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *bucketImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }

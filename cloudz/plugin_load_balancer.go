@@ -264,12 +264,7 @@ func (p *loadBalancerImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (*loadBalancerImpl) BeforeDeployHook(_ string) {
-	// nothing to do here
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*loadBalancerImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *loadBalancerImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }

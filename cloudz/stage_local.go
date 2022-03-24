@@ -112,7 +112,7 @@ func (s *localStageImpl) Create() {
 
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.BeforeDeployHook(s.cfg.App.GetBuildDirPath(plugin))
+			plugin.EventHook(LocalBeforeCreateEvent, s.cfg.App.GetBuildDirPath(plugin))
 		}
 	}
 
@@ -120,7 +120,7 @@ func (s *localStageImpl) Create() {
 
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.AfterDeployHook(s.cfg.App.GetBuildDirPath(plugin))
+			plugin.EventHook(LocalAfterCreateEvent, s.cfg.App.GetBuildDirPath(plugin))
 		}
 	}
 }

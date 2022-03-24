@@ -132,7 +132,7 @@ func (s *cloudStageImpl) Deploy() {
 			buf, err := tpl.JSON()
 			errorz.MaybeMustWrap(err)
 
-			plugin.BeforeDeployHook(buildDirPath)
+			plugin.EventHook(CloudBeforeDeployEvent, buildDirPath)
 
 			plugin.UpdateCloudMetadata(
 				s.cfg.App.GetOperations().UpsertStack(
@@ -142,7 +142,7 @@ func (s *cloudStageImpl) Deploy() {
 						"Stage": s.GetName(),
 					}))
 
-			plugin.AfterDeployHook(buildDirPath)
+			plugin.EventHook(CloudAfterDeployEvent, buildDirPath)
 		}
 	}
 }

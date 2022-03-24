@@ -220,12 +220,7 @@ func (p *mailImpl) UpdateCloudMetadata(_ *awscft.Stack) {
 	// nothing to do here
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (p *mailImpl) BeforeDeployHook(_ string) {
-
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*mailImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *mailImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }

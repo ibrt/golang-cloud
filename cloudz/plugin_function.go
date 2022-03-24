@@ -316,12 +316,19 @@ func (p *functionImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (p *functionImpl) BeforeDeployHook(buildDirPath string) {
+// EventHook implements the Plugin interface.
+func (p *functionImpl) EventHook(event Event, buildDirPath string) {
+	switch event {
+	case LocalBeforeCreateEvent:
+		p.localBeforeCreateEventHook(buildDirPath)
+	}
+}
+
+func (p *functionImpl) localBeforeCreateEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
 	if p.cfg.Stage.GetTarget().IsLocal() {
-		p.cfg.Builder.LocalBeforeDeployHook(p, buildDirPath)
+		p.cfg.Builder.LocalBeforeCreateHook(p, buildDirPath)
 		return
 	}
 
@@ -333,9 +340,4 @@ func (p *functionImpl) BeforeDeployHook(buildDirPath string) {
 		p.cfg.Stage.AsCloudStage().GetArtifactsKeyPrefix(p, FunctionPackageFileName),
 		"application/zip",
 		packageContents)
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*functionImpl) AfterDeployHook(_ string) {
-	// nothing to do here
 }

@@ -603,16 +603,19 @@ func (p *hasuraImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (p *hasuraImpl) BeforeDeployHook(buildDirPath string) {
-	if p.GetConfig().Stage.GetTarget().IsCloud() {
-		p.beforeDeployHookCloud(buildDirPath)
-		return
+// EventHook implements the Plugin interface.
+func (p *hasuraImpl) EventHook(event Event, buildDirPath string) {
+	switch event {
+	case LocalBeforeCreateEvent:
+		p.localBeforeCreateEventHook(buildDirPath)
+	case LocalAfterCreateEvent:
+		p.localAfterCreateEventHook()
+	case CloudBeforeDeployEvent:
+		p.cloudBeforeDeployEventHook(buildDirPath)
 	}
-	p.beforeDeployHookLocal(buildDirPath)
 }
 
-func (p *hasuraImpl) beforeDeployHookLocal(buildDirPath string) {
+func (p *hasuraImpl) localBeforeCreateEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfigDirPath(p, hasuraConfigDirParts...)
 
@@ -645,7 +648,14 @@ func (p *hasuraImpl) beforeDeployHookLocal(buildDirPath string) {
 			}))
 }
 
-func (p *hasuraImpl) beforeDeployHookCloud(buildDirPath string) {
+func (p *hasuraImpl) localAfterCreateEventHook() {
+	if p.GetStage().GetTarget().IsLocal() {
+		time.Sleep(30 * time.Second)
+		p.ApplyLocalMetadata()
+	}
+}
+
+func (p *hasuraImpl) cloudBeforeDeployEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
 	imageWithTag := p.deps.ImageRepository.GetCloudMetadata().ImageName + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
@@ -665,14 +675,6 @@ func (p *hasuraImpl) beforeDeployHookCloud(buildDirPath string) {
 
 	p.cfg.Stage.GetConfig().App.GetOperations().DockerLogin()
 	shellz.NewCommand("docker", "push", imageWithTag).MustRun()
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (p *hasuraImpl) AfterDeployHook(_ string) {
-	if p.GetStage().GetTarget().IsLocal() {
-		time.Sleep(30 * time.Second)
-		p.ApplyLocalMetadata()
-	}
 }
 
 func (p *hasuraImpl) runCmd(params ...interface{}) {

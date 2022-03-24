@@ -6,6 +6,17 @@ import (
 	dctypes "github.com/docker/cli/cli/compose/types"
 )
 
+// Event describes an event.
+type Event string
+
+// Known events.
+const (
+	LocalBeforeCreateEvent Event = "localBeforeCreate"
+	LocalAfterCreateEvent  Event = "localAfterCreate"
+	CloudBeforeDeployEvent Event = "cloudBeforeDeploy"
+	CloudAfterDeployEvent  Event = "cloudAfterDeploy"
+)
+
 // Plugin describes a plugin, i.e. a set of behaviors, tools, and components.
 type Plugin interface {
 	GetDisplayName() string
@@ -18,8 +29,7 @@ type Plugin interface {
 	UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath string)
 	GetCloudTemplate(buildDirPath string) *gocf.Template
 	UpdateCloudMetadata(stack *awscft.Stack)
-	BeforeDeployHook(buildDirPath string)
-	AfterDeployHook(buildDirPath string)
+	EventHook(event Event, buildDirPath string)
 }
 
 // OtherDependencies describes a set of unstructured dependencies.

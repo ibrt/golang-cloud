@@ -262,12 +262,7 @@ func (p *imageRepositoryImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (*imageRepositoryImpl) BeforeDeployHook(_ string) {
-	// nothing to do here
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*imageRepositoryImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *imageRepositoryImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }

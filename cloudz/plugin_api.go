@@ -328,12 +328,15 @@ func (p *apiImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (p *apiImpl) BeforeDeployHook(buildDirPath string) {
-	if p.cfg.Stage.GetTarget().IsCloud() {
-		return
+// EventHook implements the Plugin interface.
+func (p *apiImpl) EventHook(event Event, buildDirPath string) {
+	switch event {
+	case LocalBeforeCreateEvent:
+		p.localBeforeCreateEventHook(buildDirPath)
 	}
+}
 
+func (p *apiImpl) localBeforeCreateEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
 	filez.MustWriteFile(
@@ -365,9 +368,4 @@ func (p *apiImpl) BeforeDeployHook(buildDirPath string) {
 	filez.MustWriteFile(
 		filepath.Join(buildDirPath, "config.json"), 0777, 0666,
 		jsonz.MustMarshalIndentDefault(cfg))
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*apiImpl) AfterDeployHook(_ string) {
-	// nothing to do here
 }

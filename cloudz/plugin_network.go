@@ -403,12 +403,7 @@ func (p *networkImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (*networkImpl) BeforeDeployHook(_ string) {
-	// nothing to do here
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*networkImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *networkImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }

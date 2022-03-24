@@ -381,12 +381,15 @@ func (p *postgresImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (p *postgresImpl) BeforeDeployHook(buildDirPath string) {
-	if p.GetConfig().Stage.GetTarget().IsCloud() {
-		return
+// EventHook implements the Plugin interface.
+func (p *postgresImpl) EventHook(event Event, buildDirPath string) {
+	switch event {
+	case LocalBeforeCreateEvent:
+		p.localBeforeCreateEvent(buildDirPath)
 	}
+}
 
+func (p *postgresImpl) localBeforeCreateEvent(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
 	filez.MustWriteFile(
@@ -424,9 +427,4 @@ func (p *postgresImpl) BeforeDeployHook(buildDirPath string) {
 				Password: postgresLocalPassword,
 				Database: "postgres",
 			}))
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*postgresImpl) AfterDeployHook(_ string) {
-	// nothing to do here
 }

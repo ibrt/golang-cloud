@@ -281,12 +281,7 @@ func (p *postgresProxyImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	}
 }
 
-// BeforeDeployHook implements the Plugin interface.
-func (*postgresProxyImpl) BeforeDeployHook(_ string) {
-	// nothing to do here
-}
-
-// AfterDeployHook implements the Plugin interface.
-func (*postgresProxyImpl) AfterDeployHook(_ string) {
+// EventHook implements the Plugin interface.
+func (p *postgresProxyImpl) EventHook(_ Event, _ string) {
 	// nothing to do here
 }
