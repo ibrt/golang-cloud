@@ -15,6 +15,7 @@ import (
 	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-bites/numeric/intz"
 	"github.com/ibrt/golang-bites/stringz"
+	"github.com/ibrt/golang-bites/urlz"
 	"github.com/ibrt/golang-errors/errorz"
 	"github.com/ibrt/golang-validation/vz"
 )
@@ -74,7 +75,7 @@ type PostgresProxyLocalMetadata struct {
 // PostgresProxyCloudMetadata describes the postgres proxy cloud metadata.
 type PostgresProxyCloudMetadata struct {
 	Exports CloudExports
-	URL     string
+	URL     *url.URL
 }
 
 // PostgresProxy describes a postgres proxy.
@@ -272,11 +273,11 @@ func (p *postgresProxyImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 
 	p.cloudMetadata = &PostgresProxyCloudMetadata{
 		Exports: exports,
-		URL: fmt.Sprintf("postgres://%v:%v@%v/%v",
+		URL: urlz.MustParse(fmt.Sprintf("postgres://%v:%v@%v/%v",
 			p.cfg.Stage.GetName(),
 			p.deps.Postgres.GetConfig().Cloud.Password,
 			exports.GetAtt(PostgresProxyRefDBProxy, PostgresProxyAttEndpoint),
-			p.cfg.Stage.GetName()),
+			p.cfg.Stage.GetName())),
 	}
 }
 

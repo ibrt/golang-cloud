@@ -218,7 +218,7 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 	tpl.Resources[LoadBalancerRefListenerHTTPS.Ref()] = &goelbv2.Listener{
 		Certificates: &[]goelbv2.Listener_Certificate{
 			{
-				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().GetARN()),
+				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().ARN),
 			},
 		},
 		DefaultActions: []goelbv2.Listener_Action{

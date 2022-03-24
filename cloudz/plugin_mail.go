@@ -75,8 +75,8 @@ type MailLocalMetadataSMTP struct {
 }
 
 // ToURL converts the MailLocalMetadataSMTP to a "smtp://" URL.
-func (s *MailLocalMetadataSMTP) ToURL() string {
-	return fmt.Sprintf("smtp://%v:%v@%v:%v", s.Username, s.Password, s.Host, s.Port)
+func (s *MailLocalMetadataSMTP) ToURL() *url.URL {
+	return urlz.MustParse(fmt.Sprintf("smtp://%v:%v@%v:%v", s.Username, s.Password, s.Host, s.Port))
 }
 
 // Mail describes a mail.

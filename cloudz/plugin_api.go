@@ -100,12 +100,7 @@ type APILocalMetadata struct {
 // APICloudMetadata describes the api cloud metadata.
 type APICloudMetadata struct {
 	Exports CloudExports
-	cfg     *APIConfig
-}
-
-// GetURL returns the API base URL.
-func (m *APICloudMetadata) GetURL() *url.URL {
-	return urlz.MustParse(fmt.Sprintf("https://%v", m.cfg.Cloud.DomainName))
+	URL     *url.URL
 }
 
 // API describes an api.
@@ -262,7 +257,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DomainName: p.cfg.Cloud.DomainName,
 		DomainNameConfigurations: &[]goapigwv2.DomainName_DomainNameConfiguration{
 			{
-				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().GetARN()),
+				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().ARN),
 				EndpointType:   stringz.Ptr("REGIONAL"),
 			},
 		},
@@ -329,7 +324,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 func (p *apiImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	p.cloudMetadata = &APICloudMetadata{
 		Exports: NewCloudExports(stack),
-		cfg:     p.cfg,
+		URL:     urlz.MustParse(fmt.Sprintf("https://%v", p.cfg.Cloud.DomainName)),
 	}
 }
 

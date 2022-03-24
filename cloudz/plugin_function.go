@@ -92,7 +92,8 @@ type FunctionLocalMetadata struct {
 
 // FunctionCloudMetadata describes the function cloud metadata.
 type FunctionCloudMetadata struct {
-	Exports CloudExports
+	Exports      CloudExports
+	FunctionName string
 }
 
 // GetARN returns the function ARN.
@@ -310,7 +311,8 @@ func (p *functionImpl) GetCloudTemplate(_ string) *gocf.Template {
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *functionImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	p.cloudMetadata = &FunctionCloudMetadata{
-		Exports: NewCloudExports(stack),
+		Exports:      NewCloudExports(stack),
+		FunctionName: FunctionRefFunction.Name(p),
 	}
 }
 

@@ -102,17 +102,7 @@ type PostgresLocalMetadata struct {
 // PostgresCloudMetadata describes the postgres cloud metadata.
 type PostgresCloudMetadata struct {
 	Exports CloudExports
-	cfg     *PostgresConfig
-}
-
-// GetURL returns the postgres URL.
-func (m *PostgresCloudMetadata) GetURL() string {
-	return fmt.Sprintf("postgres://%v:%v@%v:%v/%v",
-		m.cfg.Stage.GetName(),
-		m.cfg.Cloud.Password,
-		m.Exports.GetAtt(PostgresRefDBInstance, PostgresAttEndpointAddress),
-		m.Exports.GetAtt(PostgresRefDBInstance, PostgresAttEndpointPort),
-		m.cfg.Stage.GetName())
+	URL     *url.URL
 }
 
 // Postgres describes a postgres.
@@ -378,9 +368,16 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *postgresImpl) UpdateCloudMetadata(stack *awscft.Stack) {
+	exports := NewCloudExports(stack)
+
 	p.cloudMetadata = &PostgresCloudMetadata{
-		Exports: NewCloudExports(stack),
-		cfg:     p.cfg,
+		Exports: exports,
+		URL: urlz.MustParse(fmt.Sprintf("postgres://%v:%v@%v:%v/%v",
+			p.cfg.Stage.GetName(),
+			p.cfg.Cloud.Password,
+			exports.GetAtt(PostgresRefDBInstance, PostgresAttEndpointAddress),
+			exports.GetAtt(PostgresRefDBInstance, PostgresAttEndpointPort),
+			p.cfg.Stage.GetName())),
 	}
 }
 

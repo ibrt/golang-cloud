@@ -89,16 +89,9 @@ type BucketLocalMetadata struct {
 
 // BucketCloudMetadata describes the bucket cloud metadata.
 type BucketCloudMetadata struct {
-	Exports CloudExports
-	cfg     *BucketConfig
-}
-
-// GetURL returns the regional bucket URL.
-func (m *BucketCloudMetadata) GetURL() *url.URL {
-	return urlz.MustParse(fmt.Sprintf(
-		"https://s3.%v.amazonaws.com/%v",
-		m.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region,
-		m.GetName()))
+	Exports    CloudExports
+	BucketName string
+	URL        *url.URL
 }
 
 // GetName returns the bucket name.
@@ -205,8 +198,8 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 		BucketName:    bucketName,
 		AccessKey:     containerName,
 		SecretKey:     containerName,
-		ExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ExternalPort)),
-		InternalURL:   urlz.MustParse(fmt.Sprintf("http://%v:%v", containerName, minioPort)),
+		ExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
+		InternalURL:   urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
 	}
 
 	for _, svc := range tpl.Services {
@@ -316,8 +309,9 @@ func (p *bucketImpl) GetCloudTemplate(_ string) *gocf.Template {
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *bucketImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	p.cloudMetadata = &BucketCloudMetadata{
-		Exports: NewCloudExports(stack),
-		cfg:     p.cfg,
+		Exports:    NewCloudExports(stack),
+		BucketName: BucketRefBucket.Name(p),
+		URL:        urlz.MustParse(fmt.Sprintf("https://s3.%v.amazonaws.com/%v", p.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region, BucketRefBucket.Name(p))),
 	}
 }
 

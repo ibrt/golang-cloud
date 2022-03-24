@@ -57,11 +57,7 @@ func (d *CertificateDependencies) MustValidate() {
 // CertificateCloudMetadata describes the certificate cloud metadata.
 type CertificateCloudMetadata struct {
 	Exports CloudExports
-}
-
-// GetARN returns the certificate ARN.
-func (m *CertificateCloudMetadata) GetARN() string {
-	return m.Exports.GetRef(CertificateRefCertificate)
+	ARN     string
 }
 
 // Certificate describes a certificate.
@@ -167,8 +163,11 @@ func (p *certificateImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *certificateImpl) UpdateCloudMetadata(stack *awscft.Stack) {
+	exports := NewCloudExports(stack)
+
 	p.cloudMetadata = &CertificateCloudMetadata{
-		Exports: NewCloudExports(stack),
+		Exports: exports,
+		ARN:     exports.GetRef(CertificateRefCertificate),
 	}
 }
 

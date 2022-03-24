@@ -80,12 +80,8 @@ type ImageRepositoryLocalMetadata struct {
 
 // ImageRepositoryCloudMetadata describes the image repository cloud metadata.
 type ImageRepositoryCloudMetadata struct {
-	Exports CloudExports
-}
-
-// GetImageName returns the image name.
-func (m *ImageRepositoryCloudMetadata) GetImageName() string {
-	return m.Exports.GetAtt(ImageRepositoryRefRepository, ImageRepositoryAttRepositoryURI)
+	Exports   CloudExports
+	ImageName string
 }
 
 // ImageRepository describes an image repository.
@@ -258,8 +254,11 @@ func (p *imageRepositoryImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 // UpdateCloudMetadata implements the Plugin interface.
 func (p *imageRepositoryImpl) UpdateCloudMetadata(stack *awscft.Stack) {
+	exports := NewCloudExports(stack)
+
 	p.cloudMetadata = &ImageRepositoryCloudMetadata{
-		Exports: NewCloudExports(stack),
+		Exports:   exports,
+		ImageName: exports.GetAtt(ImageRepositoryRefRepository, ImageRepositoryAttRepositoryURI),
 	}
 }
 

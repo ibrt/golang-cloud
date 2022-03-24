@@ -138,14 +138,7 @@ type HasuraLocalMetadata struct {
 // HasuraCloudMetadata describes the hasura cloud metadata.
 type HasuraCloudMetadata struct {
 	Exports CloudExports
-	cfg     *HasuraConfig
-}
-
-// GetURL returns the graphql API URL.
-func (m *HasuraCloudMetadata) GetURL() *url.URL {
-	return urlz.MustParse(fmt.Sprintf(
-		"https://%v/v1/graphql",
-		m.cfg.Cloud.DomainName))
+	URL     *url.URL
 }
 
 // Hasura describes a hasura.
@@ -382,7 +375,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 					func() map[string]string {
 						e := map[string]string{
 							"HASURA_GRAPHQL_ADMIN_SECRET":              p.cfg.Cloud.AdminSecret,
-							"HASURA_GRAPHQL_DATABASE_URL":              p.deps.Postgres.GetCloudMetadata().GetURL(),
+							"HASURA_GRAPHQL_DATABASE_URL":              p.deps.Postgres.GetCloudMetadata().URL.String(),
 							"HASURA_GRAPHQL_DEV_MODE":                  "false",
 							"HASURA_GRAPHQL_ENABLED_APIS":              "graphql",
 							"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup,http-log,webhook-log,websocket-log,query-log",
@@ -421,7 +414,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 						return e
 					}()),
 				Image: stringz.Ptr(fmt.Sprintf("%v:%v",
-					p.deps.ImageRepository.GetCloudMetadata().GetImageName(),
+					p.deps.ImageRepository.GetCloudMetadata().ImageName,
 					p.cfg.Stage.AsCloudStage().GetCloudConfig().Version)),
 				LogConfiguration: &goecs.TaskDefinition_LogConfiguration{
 					LogDriver: "awslogs",
@@ -606,6 +599,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 func (p *hasuraImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	p.cloudMetadata = &HasuraCloudMetadata{
 		Exports: NewCloudExports(stack),
+		URL:     urlz.MustParse(fmt.Sprintf("https://%v/v1/graphql", p.cfg.Cloud.DomainName)),
 	}
 }
 
@@ -654,7 +648,7 @@ func (p *hasuraImpl) beforeDeployHookLocal(buildDirPath string) {
 func (p *hasuraImpl) beforeDeployHookCloud(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
-	imageWithTag := p.deps.ImageRepository.GetCloudMetadata().GetImageName() + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
+	imageWithTag := p.deps.ImageRepository.GetCloudMetadata().ImageName + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
 	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfigDirPath(p, hasuraConfigDirParts...)
 
 	filez.MustWriteFile(
