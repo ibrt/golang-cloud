@@ -12,6 +12,7 @@ import (
 type AppConfig struct {
 	DisplayName   string      `validate:"required"`
 	Name          string      `validate:"required,resource-name"`
+	RootDirPath   string      `validate:"required,dir"`
 	ConfigDirPath string      `validate:"required,dir"`
 	BuildDirPath  string      `validate:"required,parent-dir"`
 	AWSConfig     *aws.Config `validate:"required"`
