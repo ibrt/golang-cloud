@@ -96,9 +96,9 @@ type HTTPAPIDockerfileTemplateData struct {
 
 // NodeToolsGraphQLCodeGenYMLTemplateData describes the template data for NodeToolsGraphQLCodeGenYMLTemplateAsset.
 type NodeToolsGraphQLCodeGenYMLTemplateData struct {
-	SchemaFilePath string
-	QueriesDirPath string
-	OutFilePath    string
+	SchemaFilePath  string
+	QueriesGlobPath string
+	OutFilePath     string
 }
 
 // PostgresDockerfileTemplateData describes the template data for PostgresDockerfileTemplateAsset.

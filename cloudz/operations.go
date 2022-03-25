@@ -552,15 +552,15 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchema(hsURL, adminSecret, role, o
 }
 
 // GenerateHasuraGraphQLTypescriptBinding generates a GraphQL Typescript binding from a schema and a set of queries.
-func (o *operationsImpl) GenerateHasuraGraphQLTypescriptBinding(schemaFilePath, queriesDirPath, outFilePath string) {
+func (o *operationsImpl) GenerateHasuraGraphQLTypescriptBinding(schemaFilePath, queriesGlobPath, outFilePath string) {
 	configFilePath := filez.MustAbs(filez.MustWriteFile(
 		filepath.Join(o.buildDirPath, "node-tools", "graphql-codegen", "config.yml"), 0777, 0666,
 		templatez.MustParseAndExecuteText(
 			assets.NodeToolsGraphQLCodeGenYMLTemplateAsset,
 			assets.NodeToolsGraphQLCodeGenYMLTemplateData{
-				SchemaFilePath: filez.MustAbs(schemaFilePath),
-				QueriesDirPath: filez.MustAbs(queriesDirPath),
-				OutFilePath:    filez.MustAbs(outFilePath),
+				SchemaFilePath:  filez.MustAbs(schemaFilePath),
+				QueriesGlobPath: filez.MustAbs(queriesGlobPath),
+				OutFilePath:     filez.MustAbs(outFilePath),
 			})))
 
 	o.GetNodeToolCommand(GraphQLCodeGen).AddParams("-c", configFilePath).MustRun()
