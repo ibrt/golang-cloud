@@ -77,7 +77,6 @@ type HasuraConfig struct {
 	Stage            Stage `validate:"required"`
 	EnableAllowList  bool
 	UnauthorizedRole *string
-	AuthorizedRoles  []string
 	JWT              *HasuraConfigJWT `validate:"required"`
 	Environment      map[string]string
 	Local            *HasuraConfigLocal
@@ -90,15 +89,6 @@ func (c *HasuraConfig) MustValidate(stageTarget StageTarget) {
 	vz.MustValidateStruct(c)
 	errorz.Assertf(stageTarget == Cloud || c.Local != nil, "missing HasuraConfig.Local")
 	errorz.Assertf(stageTarget == Local || c.Cloud != nil, "missing HasuraConfig.Cloud")
-}
-
-// GetRoles returns the configured Hasura roles.
-func (c *HasuraConfig) GetRoles() []string {
-	roles := append([]string{"admin"}, c.AuthorizedRoles...)
-	if c.UnauthorizedRole != nil {
-		roles = append(roles, *c.UnauthorizedRole)
-	}
-	return roles
 }
 
 // HasuraConfigJWT describes part of the hasura config.
