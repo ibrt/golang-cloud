@@ -6,6 +6,7 @@ import (
 	"context"
 	"embed"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ import (
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ibrt/golang-bites/filez"
+	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-errors/errorz"
 	"github.com/ibrt/golang-inject-pg/pgz/testpgz"
 	"github.com/ibrt/golang-shell/shellz"
@@ -61,9 +63,10 @@ type Operations interface {
 	UpsertStack(name string, templateBody string, tagsMap map[string]string) *awscft.Stack
 	GeneratePostgresORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
 	NewPostgresORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
-	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string)
-	RevertHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string)
+	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
+	RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string)
+	GetNodeToolCommand(nodePkgName, nodePkgVersion string) *shellz.Command
 }
 
 var (
@@ -404,11 +407,11 @@ func (o *operationsImpl) NewPostgresORMTypeReplace(table, column, fullType strin
 // Note that this is a partial implementation for testing purposes:
 // - It does not check against nor update the "hdb_catalog.hdb_version" table.
 // - It blindly applies all the migrations in a single transaction.
-func (o *operationsImpl) ApplyHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string) {
+func (o *operationsImpl) ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
 	db := testpgz.MustOpen(pgURL)
 	defer errorz.IgnoreClose(db)
 
-	dirEntries, err := embedFS.ReadDir(rootDirPath)
+	dirEntries, err := embedFS.ReadDir(embedMigrationsDirPath)
 	errorz.MaybeMustWrap(err)
 
 	sort.Slice(dirEntries, func(i, j int) bool {
@@ -426,7 +429,7 @@ func (o *operationsImpl) ApplyHasuraMigrations(pgURL string, embedFS embed.FS, r
 			continue
 		}
 
-		migration, err := embedFS.ReadFile(filepath.Join(rootDirPath, dirEntry.Name(), "up.sql"))
+		migration, err := embedFS.ReadFile(filepath.Join(embedMigrationsDirPath, dirEntry.Name(), "up.sql"))
 		errorz.MaybeMustWrap(err)
 
 		_, err = tx.Exec(string(migration))
@@ -440,11 +443,11 @@ func (o *operationsImpl) ApplyHasuraMigrations(pgURL string, embedFS embed.FS, r
 // Note that this is a partial implementation for testing purposes:
 // - It does not check against nor update the "hdb_catalog.hdb_version" table.
 // - It blindly reverts all the migrations in a single transaction.
-func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string) {
+func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
 	db := testpgz.MustOpen(pgURL)
 	defer errorz.IgnoreClose(db)
 
-	dirEntries, err := embedFS.ReadDir(rootDirPath)
+	dirEntries, err := embedFS.ReadDir(embedMigrationsDirPath)
 	errorz.MaybeMustWrap(err)
 
 	sort.Slice(dirEntries, func(i, j int) bool {
@@ -462,7 +465,7 @@ func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, 
 			continue
 		}
 
-		migration, err := embedFS.ReadFile(filepath.Join(rootDirPath, dirEntry.Name(), "down.sql"))
+		migration, err := embedFS.ReadFile(filepath.Join(embedMigrationsDirPath, dirEntry.Name(), "down.sql"))
 		errorz.MaybeMustWrap(err)
 
 		_, err = tx.Exec(string(migration))
@@ -474,18 +477,16 @@ func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, 
 
 // GenerateHasuraGraphQLSchemas generates GraphQL schema files from a running Hasura endpoint.
 func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string) {
-	nodeToolsDirPath := o.prepareNodeTools()
 	filez.MustPrepareDir(outDirPath, 0777)
 
 	for _, role := range roles {
 		for _, format := range []string{"graphql", "json"} {
-			schema := shellz.NewCommand("yarn", "--silent", "graphqurl").
+			schema := o.GetNodeToolCommand("graphqurl", "1.0.1").
 				AddParams(hsURL).
 				AddParams("--introspect").
 				AddParams("--format", format).
 				AddParams("-H", fmt.Sprintf("X-Hasura-Role: %v", role)).
 				AddParams("-H", fmt.Sprintf("X-Hasura-Admin-Secret: %v", adminSecret)).
-				SetDir(nodeToolsDirPath).
 				MustOutput()
 
 			filez.MustWriteFile(
@@ -495,10 +496,26 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 	}
 }
 
-func (o *operationsImpl) prepareNodeTools() string {
-	buildDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
-	errorz.MaybeMustWrap(os.MkdirAll(buildDirPath, 0777))
-	filez.MustWriteFile(filepath.Join(buildDirPath, "package.json"), 0777, 0666, assets.NodeToolsPackageJSONAsset)
-	shellz.NewCommand("yarn", "install").SetDir(buildDirPath).MustRun()
-	return buildDirPath
+// GetNodeToolCommand returns a *shellz.Command ready to run a command provided as node package.
+func (o *operationsImpl) GetNodeToolCommand(nodePkgName, nodePkgVersion string) *shellz.Command {
+	nodeDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
+	packageJSONFilePath := filepath.Join(nodeDirPath, "package.json")
+	errorz.MaybeMustWrap(os.MkdirAll(nodeDirPath, 0777))
+
+	if !filez.MustCheckExists(packageJSONFilePath) {
+		filez.MustWriteFile(packageJSONFilePath, 0777, 0666, assets.NodeToolsPackageJSONAsset)
+	}
+
+	pkgJSON := &struct {
+		Name            string            `json:"name"`
+		Private         bool              `json:"private"`
+		DevDependencies map[string]string `json:"devDependencies"`
+	}{}
+
+	errorz.MaybeMustWrap(json.Unmarshal(filez.MustReadFile(packageJSONFilePath), pkgJSON))
+	pkgJSON.DevDependencies[nodePkgName] = nodePkgVersion
+	filez.MustWriteFile(packageJSONFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(pkgJSON))
+
+	shellz.NewCommand("yarn", "install").SetDir(nodeDirPath).MustRun()
+	return shellz.NewCommand("yarn", "--silent").SetDir(nodeDirPath)
 }
