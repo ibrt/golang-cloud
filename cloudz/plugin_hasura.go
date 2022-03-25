@@ -260,8 +260,8 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 		ContainerName:        containerName,
 		ConsoleContainerName: consoleContainerName,
 		AdminSecret:          hasuraLocalAdminSecret,
-		ExternalURL:          urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ExternalPort)),
-		InternalURL:          urlz.MustParse(fmt.Sprintf("http://%v:%v", containerName, p.cfg.Local.ExternalPort)),
+		ExternalURL:          urlz.MustParse(fmt.Sprintf("http://localhost:%v/v1/graphql", p.cfg.Local.ExternalPort)),
+		InternalURL:          urlz.MustParse(fmt.Sprintf("http://%v:%v/v1/graphql", containerName, p.cfg.Local.ExternalPort)),
 	}
 
 	tpl.Services = append(tpl.Services, dctypes.ServiceConfig{
