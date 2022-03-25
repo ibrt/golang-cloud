@@ -135,6 +135,7 @@ func (d *HasuraDependencies) MustValidate() {
 type HasuraLocalMetadata struct {
 	ContainerName        string
 	ConsoleContainerName string
+	AdminSecret          string
 	ExternalURL          *url.URL
 	InternalURL          *url.URL
 }
@@ -258,6 +259,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 	p.localMetadata = &HasuraLocalMetadata{
 		ContainerName:        containerName,
 		ConsoleContainerName: consoleContainerName,
+		AdminSecret:          hasuraLocalAdminSecret,
 		ExternalURL:          urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ExternalPort)),
 		InternalURL:          urlz.MustParse(fmt.Sprintf("http://%v:%v", containerName, p.cfg.Local.ExternalPort)),
 	}
