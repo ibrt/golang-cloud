@@ -474,7 +474,7 @@ func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, 
 
 // GenerateHasuraGraphQLSchemas generates GraphQL schema files from a running Hasura endpoint.
 func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string) {
-	o.prepareNodeTools()
+	nodeToolsDirPath := o.prepareNodeTools()
 	filez.MustPrepareDir(outDirPath, 0777)
 
 	for _, role := range roles {
@@ -485,7 +485,7 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 				AddParams("--format", format).
 				AddParams("-H", fmt.Sprintf("X-Hasura-Role: %v", role)).
 				AddParams("-H", fmt.Sprintf("X-Hasura-Admin-Secret: %v", adminSecret)).
-				SetDir(o.buildDirPath).
+				SetDir(nodeToolsDirPath).
 				MustOutput()
 
 			filez.MustWriteFile(
@@ -495,9 +495,10 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 	}
 }
 
-func (o *operationsImpl) prepareNodeTools() {
+func (o *operationsImpl) prepareNodeTools() string {
 	buildDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
 	errorz.MaybeMustWrap(os.Mkdir(buildDirPath, 0777))
 	filez.MustWriteFile(filepath.Join(buildDirPath, "package.json"), 0777, 0666, assets.NodeToolsPackageJSONAsset)
 	shellz.NewCommand("yarn", "install").SetDir(buildDirPath).MustRun()
+	return buildDirPath
 }
