@@ -61,8 +61,8 @@ type Operations interface {
 	DescribeStack(name string) *awscft.Stack
 	UpdateStack(name string, templateBody string, tagsMap map[string]string) *awscft.Stack
 	UpsertStack(name string, templateBody string, tagsMap map[string]string) *awscft.Stack
-	GeneratePostgresORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
-	NewPostgresORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
+	GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
+	NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string)
@@ -333,8 +333,8 @@ func (o *operationsImpl) UpsertStack(name string, templateBody string, tagsMap m
 	return o.UpdateStack(name, templateBody, tagsMap)
 }
 
-// GeneratePostgresORM generates a Postgres ORM.
-func (o *operationsImpl) GeneratePostgresORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace) {
+// GenerateSQLBoilerORM generates a SQLBoiler ORM.
+func (o *operationsImpl) GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace) {
 	filez.MustPrepareDir(outDirPath, 0777)
 
 	parsedPGURL, err := url.Parse(pgURL)
@@ -369,8 +369,8 @@ func (o *operationsImpl) GeneratePostgresORM(pgURL string, outDirPath string, ta
 	errorz.MaybeMustWrap(state.Cleanup())
 }
 
-// NewPostgresORMTypeReplace generates a new TypeReplace for GeneratePostgresORM.
-func (o *operationsImpl) NewPostgresORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace {
+// NewSQLBoilerORMTypeReplace generates a new TypeReplace for GenerateSQLBoilerORM.
+func (o *operationsImpl) NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace {
 	typePackage := ""
 	typeName := fullType
 
