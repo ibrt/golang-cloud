@@ -7,3 +7,9 @@ generates:
       - typescript
       - typescript-operations
       - typescript-react-apollo
+    config:
+      arrayInputCoercion: false
+      scalars:
+        bigint: string
+        timestamptz: string
+        uuid: string
