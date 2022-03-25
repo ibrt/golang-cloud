@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -29,9 +30,10 @@ import (
 	"github.com/ibrt/golang-shell/shellz"
 	"github.com/volatiletech/sqlboiler/v4/boilingcore"
 	"github.com/volatiletech/sqlboiler/v4/drivers"
+	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver" // SQLBoiler postgres driver
 	"github.com/volatiletech/sqlboiler/v4/importers"
 
-	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver" // SQLBoiler postgres driver
+	"github.com/ibrt/golang-cloud/cloudz/internal/assets"
 )
 
 const (
@@ -39,7 +41,6 @@ const (
 	toolGoCovHTML   = "github.com/matm/gocov-html@v0.0.0-20200509184451-71874e2e203b"
 	toolGoLint      = "golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616"
 	toolGoTest      = "github.com/rakyll/gotest@v0.0.6"
-	toolMockGen     = "github.com/golang/mock/mockgen@v1.6.0"
 	toolStaticCheck = "honnef.co/go/tools/cmd/staticcheck@v0.2.2"
 )
 
@@ -62,6 +63,7 @@ type Operations interface {
 	NewPostgresORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string)
 	RevertHasuraMigrations(pgURL string, embedFS embed.FS, rootDirPath string)
+	GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string)
 }
 
 var (
@@ -69,19 +71,21 @@ var (
 )
 
 type operationsImpl struct {
-	awsCF  *awscf.Client
-	awsECR *awsecr.Client
-	awsKMS *awskms.Client
-	awsS3  *awss3.Client
+	buildDirPath string
+	awsCF        *awscf.Client
+	awsECR       *awsecr.Client
+	awsKMS       *awskms.Client
+	awsS3        *awss3.Client
 }
 
 // NewOperations initializes a new Operations.
-func NewOperations(awsCfg *aws.Config) Operations {
+func NewOperations(buildDirPath string, awsCfg *aws.Config) Operations {
 	return &operationsImpl{
-		awsCF:  awscf.NewFromConfig(*awsCfg),
-		awsECR: awsecr.NewFromConfig(*awsCfg),
-		awsKMS: awskms.NewFromConfig(*awsCfg),
-		awsS3:  awss3.NewFromConfig(*awsCfg),
+		buildDirPath: buildDirPath,
+		awsCF:        awscf.NewFromConfig(*awsCfg),
+		awsECR:       awsecr.NewFromConfig(*awsCfg),
+		awsKMS:       awskms.NewFromConfig(*awsCfg),
+		awsS3:        awss3.NewFromConfig(*awsCfg),
 	}
 }
 
@@ -466,4 +470,34 @@ func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, 
 	}
 
 	errorz.MaybeMustWrap(tx.Commit())
+}
+
+// GenerateHasuraGraphQLSchemas generates GraphQL schema files from a running Hasura endpoint.
+func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string) {
+	o.prepareNodeTools()
+	filez.MustPrepareDir(outDirPath, 0777)
+
+	for _, role := range roles {
+		for _, format := range []string{"graphql", "json"} {
+			schema := shellz.NewCommand("yarn", "--silent", "graphqurl").
+				AddParams(hsURL).
+				AddParams("--introspect").
+				AddParams("--format", format).
+				AddParams("-H", fmt.Sprintf("X-Hasura-Role: %v", role)).
+				AddParams("-H", fmt.Sprintf("X-Hasura-Admin-Secret: %v", adminSecret)).
+				SetDir(o.buildDirPath).
+				MustOutput()
+
+			filez.MustWriteFile(
+				filepath.Join(outDirPath, fmt.Sprintf("%v.%v", role, format)),
+				0777, 0666, []byte(schema))
+		}
+	}
+}
+
+func (o *operationsImpl) prepareNodeTools() {
+	buildDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
+	errorz.MaybeMustWrap(os.Mkdir(buildDirPath, 0777))
+	filez.MustWriteFile(filepath.Join(buildDirPath, "package.json"), 0777, 0666, assets.NodeToolsPackageJSONAsset)
+	shellz.NewCommand("yarn", "install").SetDir(buildDirPath).MustRun()
 }

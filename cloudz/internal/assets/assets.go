@@ -32,13 +32,16 @@ var (
 	//go:embed http-api/Dockerfile.gotpl
 	HTTPAPIDockerfileTemplateAsset string
 
-	//go:embed load-balancer/not-found.html
+	//go:embed load-balancer/not-found.html.asset
 	LoadBalancerNotFoundHTMLAsset string
+
+	//go:embed node-tools/package.json.asset
+	NodeToolsPackageJSONAsset []byte
 
 	//go:embed postgres/Dockerfile.gotpl
 	PostgresDockerfileTemplateAsset string
 
-	//go:embed postgres/init.sh
+	//go:embed postgres/init.sh.asset
 	PostgresInitSHAsset []byte
 
 	//go:embed postgres/pgpass.gotpl

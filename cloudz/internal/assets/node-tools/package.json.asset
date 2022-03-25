@@ -1,0 +1,7 @@
+{
+  "name": "node-tools",
+  "private": true,
+  "devDependencies": {
+    "graphqurl": "^1.0.1"
+  }
+}

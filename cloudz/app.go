@@ -69,7 +69,7 @@ func NewApp(cfg *AppConfig) App {
 
 	return &appImpl{
 		cfg:           cfg,
-		ops:           NewOperations(cfg.AWSConfig),
+		ops:           NewOperations(cfg.BuildDirPath, cfg.AWSConfig),
 		sortedPlugins: sortedPlugins,
 	}
 }
