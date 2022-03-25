@@ -19,6 +19,49 @@ type AppConfig struct {
 	Plugins       []Plugin    `validate:"required"`
 }
 
+// GetRootDirPath returns the root dir path.
+func (c *AppConfig) GetRootDirPath(additionalParts ...string) string {
+	return filepath.Join(append([]string{c.RootDirPath}, additionalParts...)...)
+}
+
+// GetBuildDirPath returns the build dir path.
+func (c *AppConfig) GetBuildDirPath(additionalParts ...string) string {
+	return filepath.Join(append([]string{c.BuildDirPath}, additionalParts...)...)
+}
+
+// GetConfigDirPath returns the config dir path.
+func (c *AppConfig) GetConfigDirPath(additionalParts ...string) string {
+	return filepath.Join(append([]string{c.ConfigDirPath}, additionalParts...)...)
+}
+
+// GetBuildDirPathForPlugin returns a build dir path for the given plugin.
+func (c *AppConfig) GetBuildDirPathForPlugin(p Plugin, additionalParts ...string) string {
+	if instanceName := p.GetInstanceName(); instanceName != nil && *instanceName != "" {
+		return c.GetBuildDirPath(append([]string{
+			p.GetStage().GetName(),
+			fmt.Sprintf("%v-%v", p.GetName(), *instanceName),
+		}, additionalParts...)...)
+	}
+
+	return c.GetBuildDirPath(append([]string{
+		p.GetStage().GetName(),
+		p.GetName(),
+	}, additionalParts...)...)
+}
+
+// GetConfigDirPathForPlugin returns a config dir path for the given plugin.
+func (c *AppConfig) GetConfigDirPathForPlugin(p Plugin, additionalParts ...string) string {
+	if instanceName := p.GetInstanceName(); instanceName != nil && *instanceName != "" {
+		return c.GetConfigDirPath(append([]string{
+			fmt.Sprintf("%v-%v", p.GetName(), *instanceName),
+		}, additionalParts...)...)
+	}
+
+	return c.GetConfigDirPath(append([]string{
+		p.GetName(),
+	}, additionalParts...)...)
+}
+
 // MustValidate validates the app config.
 func (c *AppConfig) MustValidate() {
 	vz.MustValidateStruct(c)
@@ -27,8 +70,6 @@ func (c *AppConfig) MustValidate() {
 // App describes an App.
 type App interface {
 	GetConfig() *AppConfig
-	GetBuildDirPath(p Plugin, additionalParts ...string) string
-	GetConfigDirPath(p Plugin, additionalParts ...string) string
 	GetOperations() Operations
 	GetSortedPlugins() [][]Plugin
 }
@@ -78,37 +119,6 @@ func NewApp(cfg *AppConfig) App {
 // GetConfig implements the App interface.
 func (a *appImpl) GetConfig() *AppConfig {
 	return a.cfg
-}
-
-// GetBuildDirPath returns a build dir path for the given plugin.
-func (a *appImpl) GetBuildDirPath(p Plugin, additionalParts ...string) string {
-	parts := []string{
-		a.GetConfig().BuildDirPath,
-		p.GetStage().GetName(),
-	}
-
-	if instanceName := p.GetInstanceName(); instanceName != nil && *instanceName != "" {
-		parts = append(parts, fmt.Sprintf("%v-%v", p.GetName(), *instanceName))
-	} else {
-		parts = append(parts, p.GetName())
-	}
-
-	return filepath.Join(append(parts, additionalParts...)...)
-}
-
-// GetConfigDirPath returns a config dir path for the given plugin.
-func (a *appImpl) GetConfigDirPath(p Plugin, additionalParts ...string) string {
-	parts := []string{
-		a.GetConfig().ConfigDirPath,
-	}
-
-	if instanceName := p.GetInstanceName(); instanceName != nil && *instanceName != "" {
-		parts = append(parts, fmt.Sprintf("%v-%v", p.GetName(), *instanceName))
-	} else {
-		parts = append(parts, p.GetName())
-	}
-
-	return filepath.Join(append(parts, additionalParts...)...)
 }
 
 // GetOperations implements the App interface.

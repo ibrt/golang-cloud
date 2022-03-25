@@ -56,7 +56,7 @@ func NewLocalStage(cfg *LocalStageConfig) LocalStage {
 	for _, pluginGroup := range cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
 			plugin.Configure(stage)
-			buildDirPath := cfg.App.GetBuildDirPath(plugin)
+			buildDirPath := cfg.App.GetConfig().GetBuildDirPathForPlugin(plugin)
 			plugin.UpdateLocalTemplate(stage.localTemplate, buildDirPath)
 		}
 	}
@@ -112,7 +112,7 @@ func (s *localStageImpl) Create() {
 
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.EventHook(LocalBeforeCreateEvent, s.cfg.App.GetBuildDirPath(plugin))
+			plugin.EventHook(LocalBeforeCreateEvent, s.cfg.App.GetConfig().GetBuildDirPathForPlugin(plugin))
 		}
 	}
 
@@ -120,7 +120,7 @@ func (s *localStageImpl) Create() {
 
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.EventHook(LocalAfterCreateEvent, s.cfg.App.GetBuildDirPath(plugin))
+			plugin.EventHook(LocalAfterCreateEvent, s.cfg.App.GetConfig().GetBuildDirPathForPlugin(plugin))
 		}
 	}
 }

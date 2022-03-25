@@ -337,7 +337,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 		Volumes: []dctypes.ServiceVolumeConfig{
 			{
 				Type:   "bind",
-				Source: filez.MustAbs(p.cfg.Stage.GetConfig().App.GetConfigDirPath(p, hasuraConfigDirParts...)),
+				Source: filez.MustAbs(p.cfg.Stage.GetConfig().App.GetConfig().GetConfigDirPathForPlugin(p, hasuraConfigDirParts...)),
 				Target: "/hasura",
 			},
 		},
@@ -629,7 +629,7 @@ func (p *hasuraImpl) EventHook(event Event, buildDirPath string) {
 
 func (p *hasuraImpl) localBeforeCreateEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
-	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfigDirPath(p, hasuraConfigDirParts...)
+	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfig().GetConfigDirPathForPlugin(p, hasuraConfigDirParts...)
 
 	if !filez.MustCheckExists(cfgDirPath) {
 		filez.MustCopyEmbedFSSimple(
@@ -670,7 +670,7 @@ func (p *hasuraImpl) cloudBeforeDeployEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
 	imageWithTag := p.deps.ImageRepository.GetCloudMetadata().ImageName + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
-	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfigDirPath(p, hasuraConfigDirParts...)
+	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfig().GetConfigDirPathForPlugin(p, hasuraConfigDirParts...)
 
 	filez.MustWriteFile(
 		filepath.Join(buildDirPath, "Dockerfile"), 0777, 0666,
