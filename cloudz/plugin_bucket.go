@@ -83,19 +83,20 @@ func (d *BucketDependencies) MustValidate() {
 
 // BucketLocalMetadata describes the bucket local metadata.
 type BucketLocalMetadata struct {
-	ContainerName string
-	BucketName    string
-	AccessKey     string
-	SecretKey     string
-	ExternalURL   *url.URL
-	InternalURL   *url.URL
+	ContainerName      string
+	AccessKey          string
+	SecretKey          string
+	BucketName         string
+	ExternalURL        *url.URL
+	InternalURL        *url.URL
+	ConsoleExternalURL *url.URL
 }
 
 // BucketCloudMetadata describes the bucket cloud metadata.
 type BucketCloudMetadata struct {
 	Exports    CloudExports
 	BucketName string
-	URL        *url.URL
+	BucketURL  *url.URL
 }
 
 // GetName returns the bucket name.
@@ -198,12 +199,13 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 	}
 
 	p.localMetadata = &BucketLocalMetadata{
-		ContainerName: containerName,
-		BucketName:    bucketName,
-		AccessKey:     containerName,
-		SecretKey:     containerName,
-		ExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
-		InternalURL:   urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
+		ContainerName:      containerName,
+		AccessKey:          containerName,
+		SecretKey:          containerName,
+		BucketName:         bucketName,
+		ExternalURL:        urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
+		InternalURL:        urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
+		ConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ExternalPort)),
 	}
 
 	for _, svc := range tpl.Services {
@@ -315,7 +317,7 @@ func (p *bucketImpl) UpdateCloudMetadata(stack *awscft.Stack) {
 	p.cloudMetadata = &BucketCloudMetadata{
 		Exports:    NewCloudExports(stack),
 		BucketName: BucketRefBucket.Name(p),
-		URL:        urlz.MustParse(fmt.Sprintf("https://s3.%v.amazonaws.com/%v", p.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region, BucketRefBucket.Name(p))),
+		BucketURL:  urlz.MustParse(fmt.Sprintf("https://s3.%v.amazonaws.com/%v", p.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region, BucketRefBucket.Name(p))),
 	}
 }
 

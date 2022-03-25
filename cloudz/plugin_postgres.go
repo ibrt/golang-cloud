@@ -97,10 +97,10 @@ func (d *PostgresDependencies) MustValidate() {
 
 // PostgresLocalMetadata describes the postgres local metadata.
 type PostgresLocalMetadata struct {
-	ContainerName    string
-	ExternalURL      *url.URL
-	InternalURL      *url.URL
-	AdminExternalURL *url.URL
+	ContainerName           string
+	ExternalURL             *url.URL
+	InternalURL             *url.URL
+	AdminConsoleExternalURL *url.URL
 }
 
 // PostgresCloudMetadata describes the postgres cloud metadata.
@@ -209,10 +209,10 @@ func (p *postgresImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath str
 	adminContainerName := LocalGetContainerName(p, "admin")
 
 	p.localMetadata = &PostgresLocalMetadata{
-		ContainerName:    containerName,
-		ExternalURL:      urlz.MustParse(fmt.Sprintf("postgres://postgres:password@localhost:%v/postgres?sslmode=disable", p.cfg.Local.ExternalPort)),
-		InternalURL:      urlz.MustParse(fmt.Sprintf("postgres://postgres:password@%v:%v/postgres?sslmode=disable", containerName, postgresPort)),
-		AdminExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.AdminExternalPort)),
+		ContainerName:           containerName,
+		ExternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:password@localhost:%v/postgres?sslmode=disable", p.cfg.Local.ExternalPort)),
+		InternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:password@%v:%v/postgres?sslmode=disable", containerName, postgresPort)),
+		AdminConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.AdminExternalPort)),
 	}
 
 	tpl.Services = append(tpl.Services, dctypes.ServiceConfig{

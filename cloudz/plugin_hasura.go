@@ -75,6 +75,7 @@ type HasuraEventHookFunc func(Hasura, Event, string)
 // HasuraConfig describes the hasura config.
 type HasuraConfig struct {
 	Stage            Stage `validate:"required"`
+	EnableAllowList  bool
 	UnauthorizedRole *string
 	JWT              *HasuraConfigJWT `validate:"required"`
 	Environment      map[string]string
@@ -102,18 +103,16 @@ type HasuraConfigLocal struct {
 	ExternalPort           uint16 `validate:"required"`
 	ConsoleExternalPort    uint16 `validate:"required"`
 	ConsoleAPIExternalPort uint16 `validate:"required"`
-	EnableAllowList        bool
 }
 
 // HasuraConfigCloud describes part of the hasura config.
 type HasuraConfigCloud struct {
-	DomainName      string `validate:"required"`
-	Replicas        int    `validate:"required"`
-	CPU             int    `validate:"required"`
-	Memory          int    `validate:"required"`
-	AdminSecret     string `validate:"required,min=16"`
-	CORSDomain      *string
-	EnableAllowList bool
+	DomainName  string `validate:"required"`
+	Replicas    int    `validate:"required"`
+	CPU         int    `validate:"required"`
+	Memory      int    `validate:"required"`
+	AdminSecret string `validate:"required,min=16"`
+	CORSDomain  *string
 }
 
 // HasuraDependencies describes the hasura dependencies.
@@ -138,6 +137,7 @@ type HasuraLocalMetadata struct {
 	AdminSecret          string
 	ExternalURL          *url.URL
 	InternalURL          *url.URL
+	ConsoleExternalURL   *url.URL
 }
 
 // HasuraCloudMetadata describes the hasura cloud metadata.
@@ -262,6 +262,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 		AdminSecret:          hasuraLocalAdminSecret,
 		ExternalURL:          urlz.MustParse(fmt.Sprintf("http://localhost:%v/v1/graphql", p.cfg.Local.ExternalPort)),
 		InternalURL:          urlz.MustParse(fmt.Sprintf("http://%v:%v/v1/graphql", containerName, p.cfg.Local.ExternalPort)),
+		ConsoleExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ConsoleExternalPort)),
 	}
 
 	tpl.Services = append(tpl.Services, dctypes.ServiceConfig{
@@ -276,7 +277,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 				"HASURA_GRAPHQL_DATABASE_URL":      stringz.Ptr(p.deps.Postgres.GetLocalMetadata().InternalURL.String()),
 				"HASURA_GRAPHQL_DEV_MODE":          stringz.Ptr("true"),
 				"HASURA_GRAPHQL_ENABLED_LOG_TYPES": stringz.Ptr("startup, http-log, webhook-log, websocket-log, query-log"),
-				"HASURA_GRAPHQL_ENABLE_ALLOWLIST":  stringz.Ptr(fmt.Sprintf("%v", p.cfg.Local.EnableAllowList)),
+				"HASURA_GRAPHQL_ENABLE_ALLOWLIST":  stringz.Ptr(fmt.Sprintf("%v", p.cfg.EnableAllowList)),
 				"HASURA_GRAPHQL_ENABLE_CONSOLE":    stringz.Ptr("false"),
 				"HASURA_GRAPHQL_ENABLE_TELEMETRY":  stringz.Ptr("false"),
 				"HASURA_GRAPHQL_LOG_LEVEL":         stringz.Ptr("debug"),
@@ -385,7 +386,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 							"HASURA_GRAPHQL_DEV_MODE":                  "false",
 							"HASURA_GRAPHQL_ENABLED_APIS":              "graphql",
 							"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup,http-log,webhook-log,websocket-log,query-log",
-							"HASURA_GRAPHQL_ENABLE_ALLOWLIST":          fmt.Sprintf("%v", p.cfg.Cloud.EnableAllowList),
+							"HASURA_GRAPHQL_ENABLE_ALLOWLIST":          fmt.Sprintf("%v", p.cfg.EnableAllowList),
 							"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
 							"HASURA_GRAPHQL_ENABLE_MAINTENANCE_MODE":   "true",
 							"HASURA_GRAPHQL_ENABLE_TELEMETRY":          "false",

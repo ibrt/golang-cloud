@@ -63,24 +63,10 @@ func (d *MailDependencies) MustValidate() {
 
 // MailLocalMetadata describes the mail local metadata.
 type MailLocalMetadata struct {
-	ContainerName string
-	ExternalURL   *url.URL
-	InternalURL   *url.URL
-	ExternalSMTP  *MailLocalMetadataSMTP
-	InternalSMTP  *MailLocalMetadataSMTP
-}
-
-// MailLocalMetadataSMTP describes part of the mail local metadata.
-type MailLocalMetadataSMTP struct {
-	Username string
-	Password string
-	Host     string
-	Port     uint16
-}
-
-// ToURL converts the MailLocalMetadataSMTP to a "smtp://" URL.
-func (s *MailLocalMetadataSMTP) ToURL() *url.URL {
-	return urlz.MustParse(fmt.Sprintf("smtp://%v:%v@%v:%v", s.Username, s.Password, s.Host, s.Port))
+	ContainerName      string
+	ExternalURL        *url.URL
+	InternalURL        *url.URL
+	ConsoleExternalURL *url.URL
 }
 
 // Mail describes a mail.
@@ -170,21 +156,10 @@ func (p *mailImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 	containerName := LocalGetContainerName(p)
 
 	p.localMetadata = &MailLocalMetadata{
-		ContainerName: containerName,
-		ExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v/api/v2", p.cfg.Local.ExternalPort)),
-		InternalURL:   urlz.MustParse(fmt.Sprintf("http://%v:%v/api/v2", containerName, p.cfg.Local.ExternalPort)),
-		ExternalSMTP: &MailLocalMetadataSMTP{
-			Username: "",
-			Password: "mailhog",
-			Host:     "localhost",
-			Port:     p.cfg.Local.SMTPExternalPort,
-		},
-		InternalSMTP: &MailLocalMetadataSMTP{
-			Username: "",
-			Password: "mailhog",
-			Host:     containerName,
-			Port:     p.cfg.Local.SMTPExternalPort,
-		},
+		ContainerName:      containerName,
+		ExternalURL:        urlz.MustParse(fmt.Sprintf("smtp://:mailhog@localhost:%v", p.cfg.Local.SMTPExternalPort)),
+		InternalURL:        urlz.MustParse(fmt.Sprintf("smtp://:mailhog@%v:%v", containerName, p.cfg.Local.SMTPExternalPort)),
+		ConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v/api/v2", p.cfg.Local.ExternalPort)),
 	}
 
 	tpl.Services = append(tpl.Services, dctypes.ServiceConfig{
