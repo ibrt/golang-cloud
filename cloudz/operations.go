@@ -331,7 +331,8 @@ func (o *operationsImpl) GoTest(dirPath string, packages []string, filter string
 	shellz.NewCommand("go", "mod", "tidy").SetDir(dirPath).MustRun()
 	shellz.NewCommand("go", "generate", "./...").SetDir(dirPath).MustRun()
 	shellz.NewCommand("go", "build", "-v", "./...").SetDir(dirPath).MustRun()
-	o.GetGoToolCommand(GoLint).AddParams("-set_exit_status", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "run", GoLint, "-set_exit_status", "./...").SetDir(dirPath).MustRun()
+	//o.GetGoToolCommand(GoLint).AddParams("-set_exit_status", "./...").SetDir(dirPath).MustRun()
 	shellz.NewCommand("go", "vet", "./...").SetDir(dirPath).MustRun()
 	o.GetGoToolCommand(StaticCheck).AddParams("./...").SetDir(dirPath).MustRun()
 
