@@ -497,7 +497,7 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 
 func (o *operationsImpl) prepareNodeTools() string {
 	buildDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
-	errorz.MaybeMustWrap(os.Mkdir(buildDirPath, 0777))
+	errorz.MaybeMustWrap(os.MkdirAll(buildDirPath, 0777))
 	filez.MustWriteFile(filepath.Join(buildDirPath, "package.json"), 0777, 0666, assets.NodeToolsPackageJSONAsset)
 	shellz.NewCommand("yarn", "install").SetDir(buildDirPath).MustRun()
 	return buildDirPath
