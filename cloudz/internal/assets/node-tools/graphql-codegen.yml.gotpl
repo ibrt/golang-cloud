@@ -9,6 +9,8 @@ generates:
       - typescript-react-apollo
     config:
       arrayInputCoercion: false
+      immutableTypes: true
+      strictScalars: true
       scalars:
         bigint: string
         timestamptz: string
