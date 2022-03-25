@@ -1,0 +1,8 @@
+schema: {{ .SchemaFilePath }}
+documents: {{ .QueriesDirPath }}/*.graphql
+generates:
+  {{ .OutFilePath }}:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo

@@ -38,6 +38,9 @@ var (
 	//go:embed node-tools/package.json.asset
 	NodeToolsPackageJSONAsset []byte
 
+	//go:embed node-tools/graphql-codegen.yml.gotpl
+	NodeToolsGraphQLCodeGenYMLTemplateAsset string
+
 	//go:embed postgres/Dockerfile.gotpl
 	PostgresDockerfileTemplateAsset string
 
@@ -89,6 +92,13 @@ type HasuraConsoleDockerfileTemplateData struct {
 type HTTPAPIDockerfileTemplateData struct {
 	GoVersion  string
 	ListenAddr string
+}
+
+// NodeToolsGraphQLCodeGenYMLTemplateData describes the template data for NodeToolsGraphQLCodeGenYMLTemplateAsset.
+type NodeToolsGraphQLCodeGenYMLTemplateData struct {
+	SchemaFilePath string
+	QueriesDirPath string
+	OutFilePath    string
 }
 
 // PostgresDockerfileTemplateData describes the template data for PostgresDockerfileTemplateAsset.

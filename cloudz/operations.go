@@ -27,6 +27,7 @@ import (
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ibrt/golang-bites/filez"
 	"github.com/ibrt/golang-bites/jsonz"
+	"github.com/ibrt/golang-bites/templatez"
 	"github.com/ibrt/golang-errors/errorz"
 	"github.com/ibrt/golang-inject-pg/pgz/testpgz"
 	"github.com/ibrt/golang-shell/shellz"
@@ -52,23 +53,27 @@ const (
 
 // NodeTool describes a Node tool.
 type NodeTool struct {
-	Package string
-	Version string
-	Command string
+	Packages map[string]string
+	Command  string
 }
 
 // Known node tools.
 var (
 	GraphQURL = &NodeTool{
-		Package: "graphqurl",
-		Version: "1.0.1",
+		Packages: map[string]string{
+			"graphqurl": "1.0.1",
+		},
 		Command: "graphqurl",
 	}
 
-	QuickType = &NodeTool{
-		Package: "quicktype",
-		Version: "15.0.260",
-		Command: "quicktype",
+	GraphQLCodeGen = &NodeTool{
+		Packages: map[string]string{
+			"@graphql-codegen/cli":                     "2.6.2",
+			"@graphql-codegen/typescript":              "2.4.8",
+			"@graphql-codegen/typescript-operations":   "2.3.5",
+			"@graphql-codegen/typescript-react-apollo": "3.2.11",
+		},
+		Command: "graphql-codegen",
 	}
 )
 
@@ -93,7 +98,8 @@ type Operations interface {
 	NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
-	GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string)
+	GenerateHasuraGraphQLSchema(hsURL, adminSecret, role, outFilePath string)
+	GenerateHasuraGraphQLTypescriptBinding(schemaFilePath, queriesDirPath, outFilePath string)
 }
 
 var (
@@ -366,7 +372,7 @@ func (o *operationsImpl) GoTest(dirPath string, packages []string, filter string
 
 // GetNodeToolCommand returns a *shellz.Command ready to run a command provided as node package.
 func (o *operationsImpl) GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command {
-	nodeDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
+	nodeDirPath := filepath.Join(o.buildDirPath, "node-tools")
 	packageJSONFilePath := filepath.Join(nodeDirPath, "package.json")
 	errorz.MaybeMustWrap(os.MkdirAll(nodeDirPath, 0777))
 
@@ -381,7 +387,9 @@ func (o *operationsImpl) GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command 
 	}{}
 
 	errorz.MaybeMustWrap(json.Unmarshal(filez.MustReadFile(packageJSONFilePath), pkgJSON))
-	pkgJSON.DevDependencies[nodeTool.Package] = nodeTool.Version
+	for k, v := range nodeTool.Packages {
+		pkgJSON.DevDependencies[k] = v
+	}
 	filez.MustWriteFile(packageJSONFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(pkgJSON))
 
 	shellz.NewCommand("yarn", "install").SetDir(nodeDirPath).MustRun()
@@ -530,23 +538,30 @@ func (o *operationsImpl) RevertHasuraMigrations(pgURL string, embedFS embed.FS, 
 	errorz.MaybeMustWrap(tx.Commit())
 }
 
-// GenerateHasuraGraphQLSchemas generates GraphQL schema files from a running Hasura endpoint.
-func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string) {
-	filez.MustPrepareDir(outDirPath, 0777)
+// GenerateHasuraGraphQLSchema generates a GraphQL schema file from a running Hasura endpoint.
+func (o *operationsImpl) GenerateHasuraGraphQLSchema(hsURL, adminSecret, role, outFilePath string) {
+	schema := o.GetNodeToolCommand(GraphQURL).
+		AddParams(hsURL).
+		AddParams("--introspect").
+		AddParams("--format", "graphql").
+		AddParams("-H", fmt.Sprintf("X-Hasura-Admin-Secret: %v", adminSecret)).
+		AddParams("-H", fmt.Sprintf("X-Hasura-Role: %v", role)).
+		MustOutput()
 
-	for _, role := range roles {
-		for _, format := range []string{"graphql", "json"} {
-			schema := o.GetNodeToolCommand(GraphQURL).
-				AddParams(hsURL).
-				AddParams("--introspect").
-				AddParams("--format", format).
-				AddParams("-H", fmt.Sprintf("X-Hasura-Role: %v", role)).
-				AddParams("-H", fmt.Sprintf("X-Hasura-Admin-Secret: %v", adminSecret)).
-				MustOutput()
+	filez.MustWriteFile(outFilePath, 0777, 0666, []byte(schema))
+}
 
-			filez.MustWriteFile(
-				filepath.Join(outDirPath, fmt.Sprintf("%v.%v", role, format)),
-				0777, 0666, []byte(schema))
-		}
-	}
+// GenerateHasuraGraphQLTypescriptBinding generates a GraphQL Typescript binding from a schema and a set of queries.
+func (o *operationsImpl) GenerateHasuraGraphQLTypescriptBinding(schemaFilePath, queriesDirPath, outFilePath string) {
+	configFilePath := filez.MustAbs(filez.MustWriteFile(
+		filepath.Join(o.buildDirPath, "node-tools", "graphql-codegen", "config.yml"), 0777, 0666,
+		templatez.MustParseAndExecuteText(
+			assets.NodeToolsGraphQLCodeGenYMLTemplateAsset,
+			assets.NodeToolsGraphQLCodeGenYMLTemplateData{
+				SchemaFilePath: filez.MustAbs(schemaFilePath),
+				QueriesDirPath: filez.MustAbs(queriesDirPath),
+				OutFilePath:    filez.MustAbs(outFilePath),
+			})))
+
+	o.GetNodeToolCommand(GraphQLCodeGen).AddParams("-c", configFilePath).MustRun()
 }
