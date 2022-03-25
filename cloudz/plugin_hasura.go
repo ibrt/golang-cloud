@@ -92,6 +92,15 @@ func (c *HasuraConfig) MustValidate(stageTarget StageTarget) {
 	errorz.Assertf(stageTarget == Local || c.Cloud != nil, "missing HasuraConfig.Cloud")
 }
 
+// GetRoles returns the configured Hasura roles.
+func (c *HasuraConfig) GetRoles() []string {
+	roles := append([]string{"admin"}, c.AuthorizedRoles...)
+	if c.UnauthorizedRole != nil {
+		roles = append(roles, *c.UnauthorizedRole)
+	}
+	return roles
+}
+
 // HasuraConfigJWT describes part of the hasura config.
 type HasuraConfigJWT struct {
 	PublicKey *rsa.PublicKey `validate:"required"`
