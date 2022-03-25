@@ -77,6 +77,7 @@ type HasuraConfig struct {
 	Stage            Stage `validate:"required"`
 	EnableAllowList  bool
 	UnauthorizedRole *string
+	OtherRoles       []string
 	JWT              *HasuraConfigJWT `validate:"required"`
 	Environment      map[string]string
 	Local            *HasuraConfigLocal
