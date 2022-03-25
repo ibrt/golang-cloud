@@ -52,7 +52,7 @@ const (
 	HasuraAttTargetGroupFullName = CloudAtt("TargetGroupFullName")
 	HasuraAttTargetGroupName     = CloudAtt("TargetGroupName")
 
-	hasuraVersion          = "2.2.2"
+	hasuraVersion          = "2.3.1"
 	hasuraLocalAdminSecret = "secret"
 	hasuraCloudPort        = 7329 // Note: it doesn't really matter as long as it's unique-ish.
 )
