@@ -38,12 +38,38 @@ import (
 	"github.com/ibrt/golang-cloud/cloudz/internal/assets"
 )
 
+// GoTool describes a Go tool.
+type GoTool string
+
+// Known Go tools.
 const (
-	toolGoCov       = "github.com/axw/gocov/gocov@v1.0.0"
-	toolGoCovHTML   = "github.com/matm/gocov-html@v0.0.0-20200509184451-71874e2e203b"
-	toolGoLint      = "golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616"
-	toolGoTest      = "github.com/rakyll/gotest@v0.0.6"
-	toolStaticCheck = "honnef.co/go/tools/cmd/staticcheck@v0.2.2"
+	GoCov       GoTool = "github.com/axw/gocov/gocov@v1.0.0"
+	GoCovHTML   GoTool = "github.com/matm/gocov-html@v0.0.0-20200509184451-71874e2e203b"
+	GoLint      GoTool = "golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616"
+	GoTest      GoTool = "github.com/rakyll/gotest@v0.0.6"
+	StaticCheck GoTool = "honnef.co/go/tools/cmd/staticcheck@v0.2.2"
+)
+
+// NodeTool describes a Node tool.
+type NodeTool struct {
+	Package string
+	Version string
+	Command string
+}
+
+// Known node tools.
+var (
+	GraphQURL = &NodeTool{
+		Package: "graphqurl",
+		Version: "1.0.1",
+		Command: "graphqurl",
+	}
+
+	QuickType = &NodeTool{
+		Package: "quicktype",
+		Version: "15.0.260",
+		Command: "quicktype",
+	}
 )
 
 // Operations provides a collection of utilities for performing operations.
@@ -53,7 +79,6 @@ type Operations interface {
 	DockerPush(imageAndTag string)
 	GoCrossBuildForLinuxAMD64(workDirPath, packageName, binFilePath string, injectValues map[string]string)
 	GoPackageFunction(handlerFilePath, functionHandlerFileName, packageFilePath string)
-	GoTest(rootDirPath string, packages []string, filter string, force, cover bool, outDirPath string)
 	UploadFile(bucketName, key, contentType string, body []byte)
 	Decrypt(keyAlias string, ciphertext []byte) []byte
 	Encrypt(keyAlias string, plaintext []byte) []byte
@@ -61,12 +86,14 @@ type Operations interface {
 	DescribeStack(name string) *awscft.Stack
 	UpdateStack(name string, templateBody string, tagsMap map[string]string) *awscft.Stack
 	UpsertStack(name string, templateBody string, tagsMap map[string]string) *awscft.Stack
+	GetGoToolCommand(goTool GoTool) *shellz.Command
+	GoTest(rootDirPath string, packages []string, filter string, force, cover bool, outDirPath string)
+	GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command
 	GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
 	NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	GenerateHasuraGraphQLSchemas(hsURL, adminSecret string, roles []string, outDirPath string)
-	GetNodeToolCommand(nodePkgName, nodePkgVersion string) *shellz.Command
 }
 
 var (
@@ -165,49 +192,6 @@ func (o *operationsImpl) GoPackageFunction(binFilePath, functionHandlerFileName,
 	errorz.MaybeMustWrap(err)
 	errorz.MaybeMustWrap(w.Close())
 	filez.MustWriteFile(packageFilePath, 0777, 0666, zipBuf.Bytes())
-}
-
-// GoTest runs Go tests.
-func (o *operationsImpl) GoTest(dirPath string, packages []string, filter string, force, cover bool, outDirPath string) {
-	filez.MustPrepareDir(outDirPath, 0777)
-	rawCoverageFilePath := filepath.Join(outDirPath, "coverage.out")
-	htmlCoverageFilePath := filepath.Join(outDirPath, "coverage.html")
-
-	shellz.NewCommand("go", "mod", "tidy").SetDir(dirPath).MustRun()
-	shellz.NewCommand("go", "generate", "./...").SetDir(dirPath).MustRun()
-	shellz.NewCommand("go", "build", "-v", "./...").SetDir(dirPath).MustRun()
-	shellz.NewCommand("go", "run", toolGoLint, "-set_exit_status", "./...").SetDir(dirPath).MustRun()
-	shellz.NewCommand("go", "vet", "./...").SetDir(dirPath).MustRun()
-	shellz.NewCommand("go", "run", toolStaticCheck, "./...").SetDir(dirPath).MustRun()
-
-	cmd := shellz.NewCommand(
-		"go", "run", toolGoTest,
-		"-v", "-p", fmt.Sprintf("%v", runtime.NumCPU()),
-		"-race", "-shuffle=on",
-		"-covermode=atomic", fmt.Sprintf("-coverprofile=%v", rawCoverageFilePath))
-
-	if force {
-		cmd.AddParams("-count=1")
-	}
-
-	if len(packages) == 0 {
-		cmd.AddParams("./...")
-	} else {
-		cmd.AddParamsString(packages...)
-	}
-
-	if filter != "" {
-		cmd = cmd.AddParams("--run", filter)
-	}
-
-	cmd.SetDir(dirPath).MustRun()
-
-	if cover {
-		coverageJSON := shellz.NewCommand("go", "run", toolGoCov, "convert", rawCoverageFilePath).SetDir(dirPath).MustOutput()
-		coverageHTML := shellz.NewCommand("go", "run", toolGoCovHTML).SetStdin(strings.NewReader(coverageJSON)).SetDir(dirPath).MustOutput()
-		filez.MustWriteFile(htmlCoverageFilePath, 0777, 0666, []byte(coverageHTML))
-		shellz.NewCommand("open", htmlCoverageFilePath).SetDir(dirPath).MustRun()
-	}
 }
 
 // UploadFile uploads a file to awss3.
@@ -331,6 +315,77 @@ func (o *operationsImpl) UpsertStack(name string, templateBody string, tagsMap m
 		return o.CreateStack(name, templateBody, tagsMap)
 	}
 	return o.UpdateStack(name, templateBody, tagsMap)
+}
+
+// GetGoToolCommand returns a *shellz.Command ready to run a command provided as Go package.
+func (o *operationsImpl) GetGoToolCommand(goTool GoTool) *shellz.Command {
+	return shellz.NewCommand("go", "run", goTool)
+}
+
+// GoTest runs Go tests.
+func (o *operationsImpl) GoTest(dirPath string, packages []string, filter string, force, cover bool, outDirPath string) {
+	filez.MustPrepareDir(outDirPath, 0777)
+	rawCoverageFilePath := filepath.Join(outDirPath, "coverage.out")
+	htmlCoverageFilePath := filepath.Join(outDirPath, "coverage.html")
+
+	shellz.NewCommand("go", "mod", "tidy").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "generate", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "build", "-v", "./...").SetDir(dirPath).MustRun()
+	o.GetGoToolCommand(GoLint).AddParams("-set_exit_status", "./...").SetDir(dirPath).MustRun()
+	shellz.NewCommand("go", "vet", "./...").SetDir(dirPath).MustRun()
+	o.GetGoToolCommand(StaticCheck).AddParams("./...").SetDir(dirPath).MustRun()
+
+	cmd := o.GetGoToolCommand(GoTest).
+		AddParams("-v", "-p", fmt.Sprintf("%v", runtime.NumCPU()),
+			"-race", "-shuffle=on",
+			"-covermode=atomic", fmt.Sprintf("-coverprofile=%v", rawCoverageFilePath))
+
+	if force {
+		cmd.AddParams("-count=1")
+	}
+
+	if len(packages) == 0 {
+		cmd.AddParams("./...")
+	} else {
+		cmd.AddParamsString(packages...)
+	}
+
+	if filter != "" {
+		cmd = cmd.AddParams("--run", filter)
+	}
+
+	cmd.SetDir(dirPath).MustRun()
+
+	if cover {
+		coverageJSON := o.GetGoToolCommand(GoCov).AddParams("convert", rawCoverageFilePath).SetDir(dirPath).MustOutput()
+		coverageHTML := o.GetGoToolCommand(GoCovHTML).SetStdin(strings.NewReader(coverageJSON)).SetDir(dirPath).MustOutput()
+		filez.MustWriteFile(htmlCoverageFilePath, 0777, 0666, []byte(coverageHTML))
+		shellz.NewCommand("open", htmlCoverageFilePath).SetDir(dirPath).MustRun()
+	}
+}
+
+// GetNodeToolCommand returns a *shellz.Command ready to run a command provided as node package.
+func (o *operationsImpl) GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command {
+	nodeDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
+	packageJSONFilePath := filepath.Join(nodeDirPath, "package.json")
+	errorz.MaybeMustWrap(os.MkdirAll(nodeDirPath, 0777))
+
+	if !filez.MustCheckExists(packageJSONFilePath) {
+		filez.MustWriteFile(packageJSONFilePath, 0777, 0666, assets.NodeToolsPackageJSONAsset)
+	}
+
+	pkgJSON := &struct {
+		Name            string            `json:"name"`
+		Private         bool              `json:"private"`
+		DevDependencies map[string]string `json:"devDependencies"`
+	}{}
+
+	errorz.MaybeMustWrap(json.Unmarshal(filez.MustReadFile(packageJSONFilePath), pkgJSON))
+	pkgJSON.DevDependencies[nodeTool.Package] = nodeTool.Version
+	filez.MustWriteFile(packageJSONFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(pkgJSON))
+
+	shellz.NewCommand("yarn", "install").SetDir(nodeDirPath).MustRun()
+	return shellz.NewCommand("yarn", "--silent", nodeTool.Command).SetDir(nodeDirPath)
 }
 
 // GenerateSQLBoilerORM generates a SQLBoiler ORM.
@@ -481,7 +536,7 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 
 	for _, role := range roles {
 		for _, format := range []string{"graphql", "json"} {
-			schema := o.GetNodeToolCommand("graphqurl", "1.0.1").
+			schema := o.GetNodeToolCommand(GraphQURL).
 				AddParams(hsURL).
 				AddParams("--introspect").
 				AddParams("--format", format).
@@ -494,28 +549,4 @@ func (o *operationsImpl) GenerateHasuraGraphQLSchemas(hsURL, adminSecret string,
 				0777, 0666, []byte(schema))
 		}
 	}
-}
-
-// GetNodeToolCommand returns a *shellz.Command ready to run a command provided as node package.
-func (o *operationsImpl) GetNodeToolCommand(nodePkgName, nodePkgVersion string) *shellz.Command {
-	nodeDirPath := filepath.Join(o.buildDirPath, "local", "node-tools")
-	packageJSONFilePath := filepath.Join(nodeDirPath, "package.json")
-	errorz.MaybeMustWrap(os.MkdirAll(nodeDirPath, 0777))
-
-	if !filez.MustCheckExists(packageJSONFilePath) {
-		filez.MustWriteFile(packageJSONFilePath, 0777, 0666, assets.NodeToolsPackageJSONAsset)
-	}
-
-	pkgJSON := &struct {
-		Name            string            `json:"name"`
-		Private         bool              `json:"private"`
-		DevDependencies map[string]string `json:"devDependencies"`
-	}{}
-
-	errorz.MaybeMustWrap(json.Unmarshal(filez.MustReadFile(packageJSONFilePath), pkgJSON))
-	pkgJSON.DevDependencies[nodePkgName] = nodePkgVersion
-	filez.MustWriteFile(packageJSONFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(pkgJSON))
-
-	shellz.NewCommand("yarn", "install").SetDir(nodeDirPath).MustRun()
-	return shellz.NewCommand("yarn", "--silent").SetDir(nodeDirPath)
 }
