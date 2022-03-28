@@ -9,7 +9,6 @@ generates:
       - typescript-react-apollo
     config:
       arrayInputCoercion: false
-      declarationKind: interface
       immutableTypes: true
       strictScalars: true
       scalars:
