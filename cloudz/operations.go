@@ -25,12 +25,15 @@ import (
 	awsecr "github.com/aws/aws-sdk-go-v2/service/ecr"
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ibrt/golang-bites/filez"
 	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-bites/templatez"
 	"github.com/ibrt/golang-errors/errorz"
 	"github.com/ibrt/golang-inject-pg/pgz/testpgz"
 	"github.com/ibrt/golang-shell/shellz"
+	"github.com/vektah/gqlparser"
+	"github.com/vektah/gqlparser/ast"
 	"github.com/volatiletech/sqlboiler/v4/boilingcore"
 	"github.com/volatiletech/sqlboiler/v4/drivers"
 	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver" // SQLBoiler postgres driver
@@ -96,6 +99,7 @@ type Operations interface {
 	GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command
 	GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
 	NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
+	GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath string)
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	RevertHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
 	GenerateHasuraGraphQLSchema(hsURL, adminSecret, role, outFilePath string)
@@ -464,6 +468,13 @@ func (o *operationsImpl) NewSQLBoilerORMTypeReplace(table, column, fullType stri
 			}(),
 		},
 	}
+}
+
+// GenerateHasuraEnumsGoBinding generates a Go enums binding from a schema.
+func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath string) {
+	rawSchema := filez.MustReadFile(schemaFilePath)
+	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
+	spew.Dump(schema)
 }
 
 // ApplyHasuraMigrations applies the Hasura migrations to the given database URL.

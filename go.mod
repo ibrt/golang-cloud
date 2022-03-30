@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.1
 	github.com/awslabs/goformation/v6 v6.0.3
+	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/cli v20.10.13+incompatible
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/iancoleman/strcase v0.2.0
@@ -19,11 +20,13 @@ require (
 	github.com/ibrt/golang-lambda v0.3.0
 	github.com/ibrt/golang-shell v1.0.2
 	github.com/ibrt/golang-validation v1.0.2
+	github.com/vektah/gqlparser v1.3.1
 	github.com/volatiletech/sqlboiler/v4 v4.8.6
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 
 require (
+	github.com/agnivade/levenshtein v1.0.1 // indirect
 	github.com/aws/aws-lambda-go v1.28.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.7 // indirect
@@ -36,7 +39,6 @@ require (
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/georgysavva/scany v0.3.0 // indirect
