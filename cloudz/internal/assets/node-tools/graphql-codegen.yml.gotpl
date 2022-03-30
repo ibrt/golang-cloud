@@ -13,5 +13,6 @@ generates:
       strictScalars: true
       scalars:
         bigint: string
+        jsonb: string
         timestamptz: string
         uuid: string
