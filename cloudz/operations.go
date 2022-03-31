@@ -477,7 +477,7 @@ func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath
 
 	for _, v := range schema.Types {
 		if v.Kind == ast.Enum {
-			spew.Dump(v)
+			spew.Dump(v.Name, v.EnumValues)
 		}
 	}
 }
