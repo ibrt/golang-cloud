@@ -25,6 +25,7 @@ import (
 	awsecr "github.com/aws/aws-sdk-go-v2/service/ecr"
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/iancoleman/strcase"
 	"github.com/ibrt/golang-bites/enumz"
 	"github.com/ibrt/golang-bites/filez"
 	"github.com/ibrt/golang-bites/jsonz"
@@ -478,11 +479,11 @@ func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath
 
 	for _, t := range schema.Types {
 		if t.Kind == ast.Enum && strings.HasSuffix(t.Name, "_enum") {
-			name := strings.TrimSuffix(t.Name, "_enum")
+			name := strcase.ToCamel(strings.TrimSuffix(t.Name, "_enum"))
 			simpleSpecs[name] = make([]string, 0)
 
 			for _, v := range t.EnumValues {
-				simpleSpecs[name] = append(simpleSpecs[name], v.Name)
+				simpleSpecs[name] = append(simpleSpecs[name], strcase.ToCamel(v.Name))
 			}
 		}
 	}
