@@ -11,6 +11,7 @@ require (
 	github.com/awslabs/goformation/v6 v6.0.3
 	github.com/docker/cli v20.10.13+incompatible
 	github.com/go-playground/validator/v10 v10.10.1
+	github.com/gobuffalo/flect v0.2.4
 	github.com/iancoleman/strcase v0.2.0
 	github.com/ibrt/golang-bites v1.7.0
 	github.com/ibrt/golang-edit-prompt v1.0.1
@@ -45,7 +46,6 @@ require (
 	github.com/getsentry/sentry-go v0.13.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/gobuffalo/flect v0.2.4 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
