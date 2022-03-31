@@ -15,4 +15,5 @@ generates:
         bigint: string
         jsonb: string
         timestamptz: string
+        tsvector: string
         uuid: string
