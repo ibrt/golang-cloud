@@ -25,7 +25,6 @@ import (
 	awsecr "github.com/aws/aws-sdk-go-v2/service/ecr"
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ibrt/golang-bites/filez"
 	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-bites/templatez"
@@ -477,7 +476,10 @@ func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath
 
 	for _, v := range schema.Types {
 		if v.Kind == ast.Enum {
-			spew.Dump(v.Name, v.EnumValues)
+			fmt.Println(v.Name, v.Types)
+			for _, v := range v.EnumValues {
+				fmt.Println(v.Name, v.Description)
+			}
 		}
 	}
 }
