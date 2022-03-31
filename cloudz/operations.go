@@ -99,7 +99,7 @@ type Operations interface {
 	GetGoToolCommand(goTool GoTool) *shellz.Command
 	GoTest(rootDirPath string, packages []string, filter string, force, cover bool, outDirPath string)
 	GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command
-	GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
+	GenerateSQLBoilerORM(pgURL string, outDirPath string, blacklist []string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace)
 	NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace
 	GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath string)
 	ApplyHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string)
@@ -403,7 +403,7 @@ func (o *operationsImpl) GetNodeToolCommand(nodeTool *NodeTool) *shellz.Command 
 }
 
 // GenerateSQLBoilerORM generates a SQLBoiler ORM.
-func (o *operationsImpl) GenerateSQLBoilerORM(pgURL string, outDirPath string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace) {
+func (o *operationsImpl) GenerateSQLBoilerORM(pgURL string, outDirPath string, blacklist []string, tableAliases map[string]boilingcore.TableAlias, typeReplaces []boilingcore.TypeReplace) {
 	filez.MustPrepareDir(outDirPath, 0777)
 
 	parsedPGURL, err := url.Parse(pgURL)
@@ -417,12 +417,13 @@ func (o *operationsImpl) GenerateSQLBoilerORM(pgURL string, outDirPath string, t
 		},
 		DriverName: "psql",
 		DriverConfig: map[string]interface{}{
-			"dbname":  path.Base(parsedPGURL.Path),
-			"host":    parsedPGURL.Hostname(),
-			"port":    parsedPGURL.Port(),
-			"user":    parsedPGURL.User.Username(),
-			"pass":    pass,
-			"sslmode": parsedPGURL.Query().Get("sslmode"),
+			"dbname":    path.Base(parsedPGURL.Path),
+			"host":      parsedPGURL.Hostname(),
+			"port":      parsedPGURL.Port(),
+			"user":      parsedPGURL.User.Username(),
+			"pass":      pass,
+			"sslmode":   parsedPGURL.Query().Get("sslmode"),
+			"blacklist": blacklist,
 		},
 		PkgName:         filepath.Base(outDirPath),
 		Imports:         importers.NewDefaultImports(),
