@@ -475,7 +475,7 @@ func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath
 	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
 
 	for _, v := range schema.Types {
-		if v.Kind == ast.Enum {
+		if v.Kind == ast.Enum && strings.HasSuffix(v.Name, "_enum") {
 			fmt.Println(v.Name, v.Types)
 			for _, v := range v.EnumValues {
 				fmt.Println(v.Name, v.Description)
