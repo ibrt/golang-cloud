@@ -474,7 +474,12 @@ func (o *operationsImpl) NewSQLBoilerORMTypeReplace(table, column, fullType stri
 func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath string) {
 	rawSchema := filez.MustReadFile(schemaFilePath)
 	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
-	spew.Dump(schema)
+
+	for _, v := range schema.Types {
+		if v.Kind == ast.Enum {
+			spew.Dump(v)
+		}
+	}
 }
 
 // ApplyHasuraMigrations applies the Hasura migrations to the given database URL.
