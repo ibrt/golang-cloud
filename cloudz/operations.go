@@ -25,6 +25,7 @@ import (
 	awsecr "github.com/aws/aws-sdk-go-v2/service/ecr"
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/ibrt/golang-bites/enumz"
 	"github.com/ibrt/golang-bites/filez"
 	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-bites/templatez"
@@ -473,15 +474,24 @@ func (o *operationsImpl) NewSQLBoilerORMTypeReplace(table, column, fullType stri
 func (o *operationsImpl) GenerateHasuraEnumsGoBinding(schemaFilePath, outDirPath string) {
 	rawSchema := filez.MustReadFile(schemaFilePath)
 	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
+	simpleSpecs := make(map[string][]string)
 
-	for _, v := range schema.Types {
-		if v.Kind == ast.Enum && strings.HasSuffix(v.Name, "_enum") {
-			fmt.Println(v.Name, v.Types)
-			for _, v := range v.EnumValues {
-				fmt.Println(v.Name, v.Description)
+	for _, t := range schema.Types {
+		if t.Kind == ast.Enum && strings.HasSuffix(t.Name, "_enum") {
+			name := strings.TrimSuffix(t.Name, "_enum")
+			simpleSpecs[name] = make([]string, 0)
+
+			for _, v := range t.EnumValues {
+				simpleSpecs[name] = append(simpleSpecs[name], v.Name)
 			}
 		}
 	}
+
+	enumz.MustGenerateEnums(
+		outDirPath,
+		true,
+		filepath.Base(outDirPath),
+		enumz.ProcessSimpleEnumSpecs(simpleSpecs))
 }
 
 // ApplyHasuraMigrations applies the Hasura migrations to the given database URL.
