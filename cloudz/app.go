@@ -14,16 +14,10 @@ import (
 type AppConfig struct {
 	DisplayName   string      `validate:"required"`
 	Name          string      `validate:"required,resource-name"`
-	RootDirPath   string      `validate:"required,dir"`
 	ConfigDirPath string      `validate:"required,dir"`
 	BuildDirPath  string      `validate:"required,parent-dir"`
 	AWSConfig     *aws.Config `validate:"required"`
 	Plugins       []Plugin    `validate:"required"`
-}
-
-// GetRootDirPath returns the root dir path.
-func (c *AppConfig) GetRootDirPath(additionalParts ...string) string {
-	return filepath.Join(append([]string{c.RootDirPath}, additionalParts...)...)
 }
 
 // GetBuildDirPath returns the build dir path.
