@@ -683,7 +683,7 @@ func (p *hasuraImpl) cloudBeforeDeployEventHook(buildDirPath string) {
 	shellz.NewCommand("cp", "-R", filepath.Join(cfgDirPath, "migrations"), filepath.Join(buildDirPath, "hasura-migrations")).MustRun()
 	shellz.NewCommand("docker", "build", "--no-cache", "-t", imageWithTag, ".").SetDir(buildDirPath).MustRun()
 
-	p.cfg.Stage.GetConfig().App.GetOperations().DockerLogin()
+	p.cfg.Stage.GetConfig().App.GetOperations().DockerLoginToECR()
 	shellz.NewCommand("docker", "push", imageWithTag).MustRun()
 }
 

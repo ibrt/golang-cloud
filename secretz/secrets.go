@@ -1,4 +1,4 @@
-package cloudz
+package secretz
 
 import (
 	"encoding/json"
@@ -14,6 +14,8 @@ import (
 	"github.com/ibrt/golang-edit-prompt/editz"
 	"github.com/ibrt/golang-errors/errorz"
 	"github.com/ibrt/golang-validation/vz"
+
+	"github.com/ibrt/golang-cloud/opz"
 )
 
 // Secrets describes a set of encrypted secrets.
@@ -25,7 +27,7 @@ type Secrets interface {
 type secretsImpl struct {
 	contextName   string
 	filePath      string
-	ops           Operations
+	ops           opz.Operations
 	defaultValues interface{}
 	keyAlias      string
 	templateName  string
@@ -33,7 +35,7 @@ type secretsImpl struct {
 }
 
 // NewSecrets initializes a new Secrets.
-func NewSecrets(contextName, filePath string, ops Operations, defaultValues interface{}) Secrets {
+func NewSecrets(contextName, filePath string, ops opz.Operations, defaultValues interface{}) Secrets {
 	t := reflect.TypeOf(defaultValues)
 
 	errorz.Assertf(t.Out(0).Kind() == reflect.Ptr, "defaultValues must be a struct pointer")

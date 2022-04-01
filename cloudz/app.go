@@ -6,6 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/ibrt/golang-validation/vz"
+
+	"github.com/ibrt/golang-cloud/opz"
 )
 
 // AppConfig describes the app config.
@@ -70,13 +72,13 @@ func (c *AppConfig) MustValidate() {
 // App describes an App.
 type App interface {
 	GetConfig() *AppConfig
-	GetOperations() Operations
+	GetOperations() opz.Operations
 	GetSortedPlugins() [][]Plugin
 }
 
 type appImpl struct {
 	cfg           *AppConfig
-	ops           Operations
+	ops           opz.Operations
 	sortedPlugins [][]Plugin
 }
 
@@ -111,7 +113,7 @@ func NewApp(cfg *AppConfig) App {
 
 	return &appImpl{
 		cfg:           cfg,
-		ops:           NewOperations(cfg.BuildDirPath, cfg.AWSConfig),
+		ops:           opz.NewOperations(cfg.BuildDirPath, cfg.AWSConfig),
 		sortedPlugins: sortedPlugins,
 	}
 }
@@ -122,7 +124,7 @@ func (a *appImpl) GetConfig() *AppConfig {
 }
 
 // GetOperations implements the App interface.
-func (a *appImpl) GetOperations() Operations {
+func (a *appImpl) GetOperations() opz.Operations {
 	return a.ops
 }
 

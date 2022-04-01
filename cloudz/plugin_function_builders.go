@@ -86,5 +86,5 @@ func (b *goFunctionBuilder) BuildCloudPackage(p Function, buildDirPath string) {
 	packageFilePath := filepath.Join(buildDirPath, FunctionPackageFileName)
 
 	ops.GoCrossBuildForLinuxAMD64(b.workDirPath, b.packageName, handlerFilePath, b.injectValues)
-	ops.GoPackageFunction(handlerFilePath, FunctionHandlerFileName, packageFilePath)
+	ops.PackageLambdaFunctionHandler(handlerFilePath, FunctionHandlerFileName, packageFilePath)
 }
