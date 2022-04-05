@@ -120,7 +120,12 @@ func (o *operationsImpl) UpdateStack(name string, templateBody string, tagsMap m
 		}(),
 		TemplateBody: aws.String(templateBody),
 	})
-	errorz.MaybeMustWrap(err)
+	if err != nil {
+		if strings.Contains(err.Error(), "No updates are to be performed") {
+			return o.DescribeStack(name)
+		}
+		errorz.MaybeMustWrap(err)
+	}
 
 	errorz.MaybeMustWrap(awscf.NewStackUpdateCompleteWaiter(o.awsCF).Wait(
 		context.Background(),
