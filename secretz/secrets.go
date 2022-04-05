@@ -75,9 +75,14 @@ func (s *secretsImpl) Load() interface{} {
 func (s *secretsImpl) EditPrompt() {
 	s.ensureFileInitialized()
 
+	enc := filez.MustReadFile(s.filePath)
+	buf, err := base64.StdEncoding.DecodeString(string(enc))
+	errorz.MaybeMustWrap(err)
+	buf = s.ops.Decrypt(s.keyAlias, buf)
+
 	filez.WithMustWriteTempFile(
 		"golang-cloud",
-		s.ops.Decrypt(s.keyAlias, filez.MustReadFile(s.filePath)),
+		buf,
 		func(tmpFilePath string) {
 			buf, isChanged, err := editz.Edit(tmpFilePath, func(buf []byte) error {
 				v := reflect.New(s.valuesType).Interface()
