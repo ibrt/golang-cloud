@@ -1,6 +1,7 @@
 package secretz
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"reflect"
 
@@ -60,7 +61,10 @@ func NewSecrets(contextName, filePath string, ops opz.Operations, defaultValues 
 func (s *secretsImpl) Load() interface{} {
 	s.ensureFileInitialized()
 
-	buf := s.ops.Decrypt(s.keyAlias, filez.MustReadFile(s.filePath))
+	enc := filez.MustReadFile(s.filePath)
+	buf, err := base64.StdEncoding.DecodeString(string(enc))
+	errorz.MaybeMustWrap(err)
+	buf = s.ops.Decrypt(s.keyAlias, buf)
 	v := reflect.New(s.valuesType).Interface()
 	errorz.MaybeMustWrap(json.Unmarshal(buf, v))
 
@@ -142,5 +146,6 @@ func (s *secretsImpl) ensureFileInitialized() {
 func (s *secretsImpl) save(v interface{}) {
 	errorz.MaybeMustWrap(vz.Validate(v))
 	buf := s.ops.Encrypt(s.keyAlias, jsonz.MustMarshalIndentDefault(v))
-	filez.MustWriteFile(s.filePath, 0777, 0666, buf)
+	enc := base64.StdEncoding.EncodeToString(buf)
+	filez.MustWriteFile(s.filePath, 0777, 0666, []byte(enc))
 }
