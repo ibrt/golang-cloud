@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"errors"
 	"strings"
 	"time"
 
@@ -90,8 +89,8 @@ func (o *operationsImpl) DescribeStack(name string) *awscft.Stack {
 		StackName: aws.String(name),
 	})
 	if err != nil {
-		var notFound *awscft.StackNotFoundException
-		if errors.As(err, &notFound) {
+		// TODO(ibrt): Better error handling.
+		if strings.Contains(err.Error(), "does not exist") {
 			return nil
 		}
 		errorz.MaybeMustWrap(err)
