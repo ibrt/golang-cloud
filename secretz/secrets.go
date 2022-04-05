@@ -38,8 +38,8 @@ type secretsImpl struct {
 func NewSecrets(contextName, filePath string, ops opz.Operations, defaultValues interface{}) Secrets {
 	t := reflect.TypeOf(defaultValues)
 
-	errorz.Assertf(t.Out(0).Kind() == reflect.Ptr, "defaultValues must be a struct pointer")
-	errorz.Assertf(t.Out(0).Elem().Kind() == reflect.Struct, "defaultValues must be a struct pointer")
+	errorz.Assertf(t.Kind() == reflect.Ptr, "defaultValues must be a struct pointer")
+	errorz.Assertf(t.Elem().Kind() == reflect.Struct, "defaultValues must be a struct pointer")
 	errorz.Assertf(vz.IsValidatable(defaultValues), "defaultValues must be validatable")
 
 	s := &secretsImpl{
