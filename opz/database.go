@@ -51,7 +51,7 @@ func SQLBoilerORMOptionTypeReplaces(typeReplaces ...boilingcore.TypeReplace) SQL
 }
 
 // NewSQLBoilerORMTypeReplace generates a new TypeReplace for th SQLBoiler ORM generator.
-func NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.TypeReplace {
+func NewSQLBoilerORMTypeReplace(table, column string, nullable bool, fullType string) boilingcore.TypeReplace {
 	typePackage := ""
 	typeName := fullType
 
@@ -66,7 +66,8 @@ func NewSQLBoilerORMTypeReplace(table, column, fullType string) boilingcore.Type
 	return boilingcore.TypeReplace{
 		Tables: []string{table},
 		Match: drivers.Column{
-			Name: column,
+			Name:     column,
+			Nullable: nullable,
 		},
 		Replace: drivers.Column{
 			Type: typeName,
