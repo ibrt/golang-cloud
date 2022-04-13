@@ -222,6 +222,8 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 		Name:          containerName,
 		ContainerName: containerName,
 		Environment: map[string]*string{
+			"MINIO_ROOT_USER":       stringz.Ptr(containerName),
+			"MINIO_ROOT_PASSWORD":   stringz.Ptr(containerName),
 			"MINIO_ACCESS_KEY":      stringz.Ptr(containerName),
 			"MINIO_SECRET_KEY":      stringz.Ptr(containerName),
 			"BITNAMI_DEBUG":         stringz.Ptr("true"),
