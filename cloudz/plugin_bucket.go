@@ -27,8 +27,9 @@ const (
 	BucketAttDualStackDomainName = CloudAtt("DualStackDomainName")
 	BucketAttRegionalDomainName  = CloudAtt("RegionalDomainName")
 
-	minioVersion = "2022.3.5"
-	minioPort    = 9000
+	minioVersion     = "2022.3.5"
+	minioPort        = 9000
+	minioConsolePort = 9001
 )
 
 var (
@@ -61,7 +62,8 @@ func (c *BucketConfig) MustValidate(stageTarget StageTarget) {
 
 // BucketConfigLocal describes part of the bucket config.
 type BucketConfigLocal struct {
-	ExternalPort uint16 `validate:"required"`
+	ExternalPort        uint16 `validate:"required"`
+	ConsoleExternalPort uint16 `validate:"required"`
 }
 
 // BucketConfigCloud describes part of the bucket config.
@@ -205,7 +207,7 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 		BucketName:         bucketName,
 		ExternalURL:        urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
 		InternalURL:        urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
-		ConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ExternalPort)),
+		ConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ConsoleExternalPort)),
 	}
 
 	for _, svc := range tpl.Services {
@@ -231,6 +233,10 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 			{
 				Target:    minioPort,
 				Published: uint32(p.cfg.Local.ExternalPort),
+			},
+			{
+				Target:    minioConsolePort,
+				Published: uint32(p.cfg.Local.ConsoleExternalPort),
 			},
 		},
 		Restart: "unless-stopped",
