@@ -52,9 +52,8 @@ const (
 	HasuraAttTargetGroupFullName = CloudAtt("TargetGroupFullName")
 	HasuraAttTargetGroupName     = CloudAtt("TargetGroupName")
 
-	hasuraVersion          = "2.3.1"
-	hasuraLocalAdminSecret = "secret"
-	hasuraCloudPort        = 7329 // Note: it doesn't really matter as long as it's unique-ish.
+	hasuraVersion   = "2.5.1"
+	hasuraCloudPort = 7329 // Note: it doesn't really matter as long as it's unique-ish.
 )
 
 var (
@@ -259,7 +258,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 	p.localMetadata = &HasuraLocalMetadata{
 		ContainerName:        containerName,
 		ConsoleContainerName: consoleContainerName,
-		AdminSecret:          hasuraLocalAdminSecret,
+		AdminSecret:          LocalSecret,
 		ExternalURL:          urlz.MustParse(fmt.Sprintf("http://localhost:%v/v1/graphql", p.cfg.Local.ExternalPort)),
 		InternalURL:          urlz.MustParse(fmt.Sprintf("http://%v:%v/v1/graphql", containerName, p.cfg.Local.ExternalPort)),
 		ConsoleExternalURL:   urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.ConsoleExternalPort)),
@@ -273,7 +272,7 @@ func (p *hasuraImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath strin
 		},
 		Environment: func() map[string]*string {
 			e := map[string]*string{
-				"HASURA_GRAPHQL_ADMIN_SECRET":      stringz.Ptr(hasuraLocalAdminSecret),
+				"HASURA_GRAPHQL_ADMIN_SECRET":      stringz.Ptr(LocalSecret),
 				"HASURA_GRAPHQL_DATABASE_URL":      stringz.Ptr(p.deps.Postgres.GetLocalMetadata().InternalURL.String()),
 				"HASURA_GRAPHQL_DEV_MODE":          stringz.Ptr("true"),
 				"HASURA_GRAPHQL_ENABLED_LOG_TYPES": stringz.Ptr("startup, http-log, webhook-log, websocket-log, query-log"),
@@ -655,7 +654,7 @@ func (p *hasuraImpl) localBeforeCreateEventHook(buildDirPath string) {
 			assets.HasuraConsoleDockerfileTemplateData{
 				Version:     hasuraVersion,
 				Port:        p.cfg.Local.ExternalPort,
-				AdminSecret: hasuraLocalAdminSecret,
+				AdminSecret: LocalSecret,
 			}))
 }
 

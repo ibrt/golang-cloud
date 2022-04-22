@@ -38,11 +38,10 @@ const (
 	PostgresAttEndpointAddress  = CloudAtt("Endpoint.Address")
 	PostgresAttEndpointPort     = CloudAtt("Endpoint.Port")
 
-	postgresVersion       = "12.10"
-	postgresPort          = 5432
-	postgresAdminVersion  = "6.7"
-	postgresAdminPort     = 80
-	postgresLocalPassword = "password"
+	postgresVersion      = "12.10"
+	postgresPort         = 5432
+	postgresAdminVersion = "6.8"
+	postgresAdminPort    = 80
 )
 
 var (
@@ -210,8 +209,8 @@ func (p *postgresImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath str
 
 	p.localMetadata = &PostgresLocalMetadata{
 		ContainerName:           containerName,
-		ExternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:password@localhost:%v/postgres?sslmode=disable", p.cfg.Local.ExternalPort)),
-		InternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:password@%v:%v/postgres?sslmode=disable", containerName, postgresPort)),
+		ExternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:%v@localhost:%v/postgres?sslmode=disable", LocalPassword, p.cfg.Local.ExternalPort)),
+		InternalURL:             urlz.MustParse(fmt.Sprintf("postgres://postgres:%v@%v:%v/postgres?sslmode=disable", LocalPassword, containerName, postgresPort)),
 		AdminConsoleExternalURL: urlz.MustParse(fmt.Sprintf("http://localhost:%v", p.cfg.Local.AdminExternalPort)),
 	}
 
@@ -222,7 +221,7 @@ func (p *postgresImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath str
 		},
 		ContainerName: containerName,
 		Environment: map[string]*string{
-			"POSTGRES_PASSWORD": stringz.Ptr(postgresLocalPassword),
+			"POSTGRES_PASSWORD": stringz.Ptr(LocalPassword),
 		},
 		Image:    containerName,
 		Networks: p.cfg.Stage.AsLocalStage().GetServiceNetworkConfig(),
@@ -243,7 +242,7 @@ func (p *postgresImpl) UpdateLocalTemplate(tpl *dctypes.Config, buildDirPath str
 		},
 		Environment: map[string]*string{
 			"PGADMIN_DEFAULT_EMAIL":                   stringz.Ptr("pgadmin4@pgadmin.org"),
-			"PGADMIN_DEFAULT_PASSWORD":                stringz.Ptr(postgresLocalPassword),
+			"PGADMIN_DEFAULT_PASSWORD":                stringz.Ptr(LocalPassword),
 			"PGADMIN_CONFIG_SERVER_MODE":              stringz.Ptr("False"),
 			"PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED": stringz.Ptr("False"),
 		},
@@ -432,7 +431,7 @@ func (p *postgresImpl) localBeforeCreateEvent(buildDirPath string) {
 				Port:     postgresPort,
 				Host:     LocalGetContainerName(p),
 				Username: "postgres",
-				Password: postgresLocalPassword,
+				Password: LocalPassword,
 				Database: "postgres",
 			}))
 }

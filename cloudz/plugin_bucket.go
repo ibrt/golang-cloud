@@ -27,7 +27,7 @@ const (
 	BucketAttDualStackDomainName = CloudAtt("DualStackDomainName")
 	BucketAttRegionalDomainName  = CloudAtt("RegionalDomainName")
 
-	minioVersion     = "2022.3.5"
+	minioVersion     = "2022.4.16"
 	minioPort        = 9000
 	minioConsolePort = 9001
 )
@@ -202,8 +202,8 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 
 	p.localMetadata = &BucketLocalMetadata{
 		ContainerName:      containerName,
-		AccessKey:          containerName,
-		SecretKey:          containerName,
+		AccessKey:          LocalAWSAccessKeyID,
+		SecretKey:          LocalAWSSecretKey,
 		BucketName:         bucketName,
 		ExternalURL:        urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
 		InternalURL:        urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
@@ -222,10 +222,10 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 		Name:          containerName,
 		ContainerName: containerName,
 		Environment: map[string]*string{
-			"MINIO_ROOT_USER":       stringz.Ptr(containerName),
-			"MINIO_ROOT_PASSWORD":   stringz.Ptr(containerName),
-			"MINIO_ACCESS_KEY":      stringz.Ptr(containerName),
-			"MINIO_SECRET_KEY":      stringz.Ptr(containerName),
+			"MINIO_ROOT_USER":       stringz.Ptr(LocalAWSAccessKeyID),
+			"MINIO_ROOT_PASSWORD":   stringz.Ptr(LocalAWSSecretKey),
+			"MINIO_ACCESS_KEY":      stringz.Ptr(LocalAWSAccessKeyID),
+			"MINIO_SECRET_KEY":      stringz.Ptr(LocalAWSSecretKey),
 			"BITNAMI_DEBUG":         stringz.Ptr("true"),
 			"MINIO_DEFAULT_BUCKETS": stringz.Ptr(bucketName + bucketSuffix),
 		},
