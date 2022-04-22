@@ -2,6 +2,7 @@ package cloudz
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 
 	dctypes "github.com/docker/cli/cli/compose/types"
@@ -140,6 +141,8 @@ func (s *localStageImpl) Destroy() {
 func (s *localStageImpl) runCmd(params ...interface{}) {
 	rawTpl, err := yaml.Marshal(s.localTemplate)
 	errorz.MaybeMustWrap(err)
+
+	fmt.Println(string(rawTpl))
 
 	shellz.NewCommand("docker-compose").
 		AddParams("-p", s.cfg.App.GetConfig().Name).
