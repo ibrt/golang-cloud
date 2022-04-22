@@ -203,7 +203,7 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 	p.localMetadata = &BucketLocalMetadata{
 		ContainerName:      containerName,
 		AccessKey:          LocalAWSAccessKeyID,
-		SecretKey:          LocalAWSSecretKey,
+		SecretKey:          LocalAWSSecretAccessKey,
 		BucketName:         bucketName,
 		ExternalURL:        urlz.MustParse(fmt.Sprintf("http://localhost:%v/%v", p.cfg.Local.ExternalPort, bucketName)),
 		InternalURL:        urlz.MustParse(fmt.Sprintf("http://%v:%v/%v", containerName, minioPort, bucketName)),
@@ -223,9 +223,9 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 		ContainerName: containerName,
 		Environment: map[string]*string{
 			"MINIO_ROOT_USER":       stringz.Ptr(LocalAWSAccessKeyID),
-			"MINIO_ROOT_PASSWORD":   stringz.Ptr(LocalAWSSecretKey),
+			"MINIO_ROOT_PASSWORD":   stringz.Ptr(LocalAWSSecretAccessKey),
 			"MINIO_ACCESS_KEY":      stringz.Ptr(LocalAWSAccessKeyID),
-			"MINIO_SECRET_KEY":      stringz.Ptr(LocalAWSSecretKey),
+			"MINIO_SECRET_KEY":      stringz.Ptr(LocalAWSSecretAccessKey),
 			"BITNAMI_DEBUG":         stringz.Ptr("true"),
 			"MINIO_DEFAULT_BUCKETS": stringz.Ptr(bucketName + bucketSuffix),
 		},
