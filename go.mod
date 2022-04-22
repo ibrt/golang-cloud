@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.16.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.1
 	github.com/awslabs/goformation/v6 v6.0.3
-	github.com/docker/cli v20.10.13+incompatible
+	github.com/docker/cli v20.10.14+incompatible
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gobuffalo/flect v0.2.4
 	github.com/iancoleman/strcase v0.2.0
