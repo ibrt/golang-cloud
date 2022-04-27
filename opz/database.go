@@ -164,6 +164,14 @@ func (o *operationsImpl) GenerateSQLiteSQLBoilerORM(dbSpec string, outDirPath st
 // - It does not check against nor update the "hdb_catalog.hdb_version" table.
 // - It blindly applies all the migrations in a single transaction.
 func (o *operationsImpl) ApplyPostgresHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
+	ApplyPostgresHasuraMigrations(pgURL, embedFS, embedMigrationsDirPath)
+}
+
+// ApplyPostgresHasuraMigrations applies the Hasura migrations to the given Postgres database URL.
+// Note that this is a partial implementation for testing purposes:
+// - It does not check against nor update the "hdb_catalog.hdb_version" table.
+// - It blindly applies all the migrations in a single transaction.
+func ApplyPostgresHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
 	db := testpgz.MustOpen(pgURL)
 	defer errorz.IgnoreClose(db)
 
@@ -199,7 +207,15 @@ func (o *operationsImpl) ApplyPostgresHasuraMigrations(pgURL string, embedFS emb
 // Note that this is a partial implementation for testing purposes:
 // - It does not check against nor update the "hdb_catalog.hdb_version" table.
 // - It blindly reverts all the migrations in a single transaction.
-func (o *operationsImpl) RevertPostgresHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
+func (*operationsImpl) RevertPostgresHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
+	RevertPostgresHasuraMigrations(pgURL, embedFS, embedMigrationsDirPath)
+}
+
+// RevertPostgresHasuraMigrations reverts the Hasura migrations to the given Postgres database URL.
+// Note that this is a partial implementation for testing purposes:
+// - It does not check against nor update the "hdb_catalog.hdb_version" table.
+// - It blindly reverts all the migrations in a single transaction.
+func RevertPostgresHasuraMigrations(pgURL string, embedFS embed.FS, embedMigrationsDirPath string) {
 	db := testpgz.MustOpen(pgURL)
 	defer errorz.IgnoreClose(db)
 
