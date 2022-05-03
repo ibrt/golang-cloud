@@ -12,9 +12,10 @@ generates:
       immutableTypes: true
       strictScalars: true
       scalars:
-        _text: string
+        _text: string[]
         bigint: string
-        jsonb: string
+        bpchar: string
+        jsonb: any
         timestamptz: string
         tsvector: string
         uuid: string
