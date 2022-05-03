@@ -12,6 +12,7 @@ generates:
       immutableTypes: true
       strictScalars: true
       scalars:
+        _text: string
         bigint: string
         jsonb: string
         timestamptz: string
