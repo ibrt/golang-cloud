@@ -13,7 +13,7 @@ generates:
       strictScalars: true
       scalars:
         _text: string[]
-        bigint: string
+        bigint: number
         bpchar: string
         jsonb: any
         timestamptz: string
