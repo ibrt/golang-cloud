@@ -70,6 +70,7 @@ func (b *goFunctionBuilder) LocalBeforeCreateEventHook(p Function, buildDirPath 
 				PackageName:             b.packageName,
 				BuildDirPath:            buildDirPath,
 				FunctionHandlerFileName: FunctionHandlerFileName,
+				WatchExcludeDirs:        p.GetConfig().Local.WatchExcludeDirs,
 			}))
 }
 

@@ -53,6 +53,7 @@ type GoFunctionAirTOMLTemplateData struct {
 	PackageName             string
 	BuildDirPath            string
 	FunctionHandlerFileName string
+	WatchExcludeDirs        []string
 }
 
 // GoFunctionDockerfileTemplateData describes the template data for HasuraDockerfileTemplateAsset.

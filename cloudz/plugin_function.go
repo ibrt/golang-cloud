@@ -67,7 +67,8 @@ func (c *FunctionConfig) MustValidate(stageTarget StageTarget) {
 
 // FunctionConfigLocal describes part of the function config.
 type FunctionConfigLocal struct {
-	ExternalPort uint16
+	ExternalPort     uint16
+	WatchExcludeDirs []string
 }
 
 // FunctionConfigCloud describes part of the function config.

@@ -7,7 +7,7 @@ cmd = "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -trimpath \"-ldflags=-s
 bin = "/usr/bin/aws-lambda-rie"
 full_bin = "/usr/bin/aws-lambda-rie {{ .BuildDirPath }}/{{ .FunctionHandlerFileName }}"
 include_ext = ["go", "tpl", "tmpl", "gotpl", "gotmpl", "html", "mod", "sum", "sql", "graphql"]
-exclude_dir = ["{{ .BuildDirPath }}"]
+exclude_dir = ["{{ .BuildDirPath }}"{{- range .WatchExcludeDirs -}}, "{{ . }}"{{- end -}}]
 include_dir = []
 exclude_file = []
 exclude_unchanged = true
