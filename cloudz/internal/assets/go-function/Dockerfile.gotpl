@@ -8,6 +8,7 @@ cp air /usr/local/bin && cd .. && rm -rf air && \
 curl -L -o /usr/bin/aws-lambda-rie 'https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie' && \
 chmod +x /usr/bin/aws-lambda-rie
 
+ENV AWS_REGION="us-east-1"
 ENV AWS_LAMBDA_FUNCTION_NAME="{{ .FunctionName }}"
 ENV AWS_LAMBDA_FUNCTION_TIMEOUT="{{ .TimeoutSeconds }}"
 
