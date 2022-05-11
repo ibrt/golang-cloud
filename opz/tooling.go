@@ -29,7 +29,7 @@ const (
 	GoCovHTML   GoTool = "github.com/matm/gocov-html@v0.0.0-20200509184451-71874e2e203b"
 	GoLint      GoTool = "golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616"
 	GoTest      GoTool = "github.com/rakyll/gotest@v0.0.6"
-	StaticCheck GoTool = "honnef.co/go/tools/cmd/staticcheck@v0.2.2"
+	StaticCheck GoTool = "honnef.co/go/tools/cmd/staticcheck@2022.1"
 )
 
 // NodeTool describes a Node tool.
