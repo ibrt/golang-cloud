@@ -9,6 +9,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/ibrt/golang-bites/enumz"
 	"github.com/ibrt/golang-bites/filez"
+	"github.com/ibrt/golang-bites/jsonz"
 	"github.com/ibrt/golang-bites/templatez"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
@@ -60,6 +61,25 @@ func (o *operationsImpl) GenerateHasuraGraphQLEnumsGoBinding(schemaFilePath, out
 	}
 
 	enumz.MustGenerateEnums(outDirPath, true, filepath.Base(outDirPath), enumSpecs)
+}
+
+// GenerateHasuraGraphQLEnumsJSONLabels generates a JSON file mapping values to labels for enums from a Hasura GraphQL schema.
+func (o *operationsImpl) GenerateHasuraGraphQLEnumsJSONLabels(schemaFilePath, outFilePath string) {
+	rawSchema := filez.MustReadFile(schemaFilePath)
+	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
+	enumsMap := make(map[string]map[string]string)
+
+	for _, t := range schema.Types {
+		if t.Kind == ast.Enum && strings.HasSuffix(t.Name, "_enum") {
+			enumsMap[t.Name] = make(map[string]string)
+
+			for _, v := range t.EnumValues {
+				enumsMap[t.Name][v.Name] = v.Description
+			}
+		}
+	}
+
+	filez.MustWriteFile(outFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(enumsMap))
 }
 
 // GenerateHasuraGraphQLTypescriptBinding generates a TypeScript binding from a Hasura GraphQL schema and a set of queries.

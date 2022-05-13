@@ -37,6 +37,7 @@ type Operations interface {
 
 	GenerateHasuraGraphQLSchema(hsURL, adminSecret, role, outFilePath string)
 	GenerateHasuraGraphQLEnumsGoBinding(schemaFilePath, outDirPath string)
+	GenerateHasuraGraphQLEnumsJSONLabels(schemaFilePath, outFilePath string)
 	GenerateHasuraGraphQLTypescriptBinding(schemaFilePath, queriesGlobPath, outFilePath string)
 
 	GeneratePostgresSQLBoilerORM(pgURL string, outDirPath string, options ...SQLBoilerORMOption)
