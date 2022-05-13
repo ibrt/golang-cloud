@@ -63,23 +63,33 @@ func (o *operationsImpl) GenerateHasuraGraphQLEnumsGoBinding(schemaFilePath, out
 	enumz.MustGenerateEnums(outDirPath, true, filepath.Base(outDirPath), enumSpecs)
 }
 
-// GenerateHasuraGraphQLEnumsJSONLabels generates a JSON file mapping values to labels for enums from a Hasura GraphQL schema.
-func (o *operationsImpl) GenerateHasuraGraphQLEnumsJSONLabels(schemaFilePath, outFilePath string) {
+// GenerateHasuraGraphQLEnumsJSONBinding generates a JSON binding for enums from a Hasura GraphQL schema.
+func (o *operationsImpl) GenerateHasuraGraphQLEnumsJSONBinding(schemaFilePath, outFilePath string) {
 	rawSchema := filez.MustReadFile(schemaFilePath)
 	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
-	enumsMap := make(map[string]map[string]string)
+
+	type jsonBinding struct {
+		SortedValues []string          `json:"sortedValues"`
+		Labels       map[string]string `json:"labels"`
+	}
+
+	jsonBindings := make(map[string]*jsonBinding)
 
 	for _, t := range schema.Types {
 		if t.Kind == ast.Enum && strings.HasSuffix(t.Name, "_enum") {
-			enumsMap[t.Name] = make(map[string]string)
+			jsonBindings[t.Name] = &jsonBinding{
+				SortedValues: make([]string, 0),
+				Labels:       make(map[string]string),
+			}
 
 			for _, v := range t.EnumValues {
-				enumsMap[t.Name][v.Name] = v.Description
+				jsonBindings[t.Name].SortedValues = append(jsonBindings[t.Name].SortedValues, v.Name)
+				jsonBindings[t.Name].Labels[v.Name] = v.Description
 			}
 		}
 	}
 
-	filez.MustWriteFile(outFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(enumsMap))
+	filez.MustWriteFile(outFilePath, 0777, 0666, jsonz.MustMarshalIndentDefault(jsonBindings))
 }
 
 // GenerateHasuraGraphQLTypescriptBinding generates a TypeScript binding from a Hasura GraphQL schema and a set of queries.
