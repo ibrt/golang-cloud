@@ -69,8 +69,7 @@ func (o *operationsImpl) GenerateHasuraGraphQLEnumsJSONBinding(schemaFilePath, o
 	schema := gqlparser.MustLoadSchema(&ast.Source{Input: string(rawSchema)})
 
 	type jsonBinding struct {
-		SortedValues []string          `json:"sortedValues"`
-		Labels       map[string]string `json:"labels"`
+		Labels map[string]string `json:"labels"`
 	}
 
 	jsonBindings := make(map[string]*jsonBinding)
@@ -78,12 +77,10 @@ func (o *operationsImpl) GenerateHasuraGraphQLEnumsJSONBinding(schemaFilePath, o
 	for _, t := range schema.Types {
 		if t.Kind == ast.Enum && strings.HasSuffix(t.Name, "_enum") {
 			jsonBindings[t.Name] = &jsonBinding{
-				SortedValues: make([]string, 0),
-				Labels:       make(map[string]string),
+				Labels: make(map[string]string),
 			}
 
 			for _, v := range t.EnumValues {
-				jsonBindings[t.Name].SortedValues = append(jsonBindings[t.Name].SortedValues, v.Name)
 				jsonBindings[t.Name].Labels[v.Name] = v.Description
 			}
 		}
