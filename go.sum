@@ -344,8 +344,8 @@ github.com/iancoleman/strcase v0.2.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ibrt/golang-bites v1.7.0/go.mod h1:0ASJHXzHQNoub+Cp2nY6/ds7osvgW6UikQ+gGUDe4TI=
-github.com/ibrt/golang-bites v1.8.0 h1:Qmz3ZyUvoviBOLnrnvbHzq1vjetLCVlxa8WHopYz5wU=
-github.com/ibrt/golang-bites v1.8.0/go.mod h1:0ASJHXzHQNoub+Cp2nY6/ds7osvgW6UikQ+gGUDe4TI=
+github.com/ibrt/golang-bites v1.9.0 h1:VFBlx532nge7EPPOj1Vq7X1aGwnrHD/WIA/9physHG8=
+github.com/ibrt/golang-bites v1.9.0/go.mod h1:0ASJHXzHQNoub+Cp2nY6/ds7osvgW6UikQ+gGUDe4TI=
 github.com/ibrt/golang-edit-prompt v1.0.1 h1:VH3hd5n3wvSSK54/aAT7v/rwQuNfg5X4hVLqM6O3Nrc=
 github.com/ibrt/golang-edit-prompt v1.0.1/go.mod h1:ByzH3nySsH2D3Y3ydLwml6k82mc7aPBRcQVV4cylssA=
 github.com/ibrt/golang-errors v1.1.0/go.mod h1:T4eQeBJ8CKAp52LT1dHwJ6qKnWKRgoTjDqDF7DM2U08=

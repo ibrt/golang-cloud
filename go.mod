@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gobuffalo/flect v0.2.5
 	github.com/iancoleman/strcase v0.2.0
-	github.com/ibrt/golang-bites v1.8.0
+	github.com/ibrt/golang-bites v1.9.0
 	github.com/ibrt/golang-edit-prompt v1.0.1
 	github.com/ibrt/golang-errors v1.1.3
 	github.com/ibrt/golang-inject-pg v1.2.0

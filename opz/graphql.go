@@ -51,6 +51,7 @@ func (o *operationsImpl) GenerateHasuraGraphQLEnumsGoBinding(schemaFilePath, out
 				enumSpec.Values = append(enumSpec.Values, &enumz.EnumSpecValue{
 					Name:  strcase.ToCamel(v.Name),
 					Value: v.Name,
+					Label: v.Description,
 				})
 			}
 
