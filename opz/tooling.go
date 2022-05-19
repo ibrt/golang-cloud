@@ -53,6 +53,7 @@ var (
 			"@graphql-codegen/typescript":              "2.4.8",
 			"@graphql-codegen/typescript-operations":   "2.3.5",
 			"@graphql-codegen/typescript-react-apollo": "3.2.11",
+			"graphql": "16.5.0",
 		},
 		Command: "graphql-codegen",
 	}
