@@ -33,7 +33,6 @@ const (
 	PostgresProxyAttRoleID             = CloudAtt("RoleId")
 	PostgresProxyAttDBProxyARN         = CloudAtt("DBProxyArn")
 	PostgresProxyAttEndpoint           = CloudAtt("Endpoint")
-	PostgresProxyAttTargetGroupARN     = CloudAtt("TargetGroupArn")
 )
 
 var (
@@ -212,7 +211,7 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, PostgresProxyRefRole)
 	CloudAddExpGetAtt(tpl, p, PostgresProxyRefRole, PostgresProxyAttARN)
-	CloudAddExpGetAtt(tpl, p, PostgresProxyRefRole, PostgresProxyAttRoleID)
+	CloudAddExpGetAtt(tpl, p, PostgresProxyRefSecret, PostgresProxyAttRoleID)
 
 	tpl.Resources[PostgresProxyRefLogGroup.Ref()] = &gologs.LogGroup{
 		LogGroupName:    stringz.Ptr(PostgresProxyRefLogGroup.Name(p)),
@@ -232,7 +231,7 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 				SecretArn:  stringz.Ptr(gocf.Ref(PostgresProxyRefSecret.Ref())),
 			},
 		},
-		DBProxyName:  PostgresProxyRefSecret.Name(p),
+		DBProxyName:  PostgresProxyRefDBProxy.Name(p),
 		DebugLogging: boolz.Ptr(p.cfg.Stage.GetMode().IsStaging()),
 		EngineFamily: "POSTGRESQL",
 		RequireTLS:   boolz.Ptr(true),
@@ -262,11 +261,10 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DBInstanceIdentifiers: &[]string{
 			p.deps.Postgres.GetCloudMetadata(true).Exports.GetRef(PostgresRefDBInstance),
 		},
-		DBProxyName:     gocf.Ref(PostgresProxyRefDBProxy.Ref()),
+		DBProxyName:     PostgresProxyRefDBProxy.Name(p),
 		TargetGroupName: "default",
 	}
 	CloudAddExpRef(tpl, p, PostgresProxyRefDBProxyTargetGroup)
-	CloudAddExpGetAtt(tpl, p, PostgresProxyRefDBProxyTargetGroup, PostgresProxyAttTargetGroupARN)
 
 	return tpl
 }
