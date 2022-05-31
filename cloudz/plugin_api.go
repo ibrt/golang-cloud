@@ -276,10 +276,9 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 			HostedZoneId: p.deps.Certificate.GetConfig().Cloud.HostedZoneID,
 		},
 		// TODO(ibrt): Figure out if we actually needed HostedZoneName instead.
-		HostedZoneId:     stringz.Ptr(p.deps.Certificate.GetConfig().Cloud.HostedZoneID),
-		MultiValueAnswer: boolz.Ptr(false),
-		Name:             p.cfg.Cloud.DomainName,
-		Type:             "A",
+		HostedZoneId: stringz.Ptr(p.deps.Certificate.GetConfig().Cloud.HostedZoneID),
+		Name:         p.cfg.Cloud.DomainName,
+		Type:         "A",
 	}
 	CloudAddExpRef(tpl, p, APIRefRecordSet)
 
