@@ -122,7 +122,7 @@ func (s *cloudStageImpl) GetArtifactsKeyPrefix(p Plugin, additionalParts ...stri
 func (s *cloudStageImpl) Deploy() {
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.Configure(s)
+			plugin.Configure(s) // reconfigure plugins as fresher cloud metadata becomes available
 			buildDirPath := s.cfg.App.GetConfig().GetBuildDirPathForPlugin(plugin)
 
 			tpl := plugin.GetCloudTemplate(buildDirPath)

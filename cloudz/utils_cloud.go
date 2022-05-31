@@ -56,6 +56,7 @@ func (r CloudRef) ExpAttRef(att CloudAtt) string {
 
 // ExpAttName returns a name for an attribute export.
 func (r CloudRef) ExpAttName(p Plugin, att CloudAtt) string {
+	fmt.Println("XXX", (r+"-exp").Name(p)+"-"+att.Name())
 	return (r + "-exp").Name(p) + "-" + att.Name()
 }
 
