@@ -236,7 +236,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 				"POST",
 			},
 			AllowOrigins: &[]string{
-				p.cfg.Cloud.CORSDomain,
+				fmt.Sprintf("https://%v", p.cfg.Cloud.CORSDomain),
 			},
 			MaxAge: intz.Ptr(86400),
 		},
