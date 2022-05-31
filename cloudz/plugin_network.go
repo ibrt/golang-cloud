@@ -54,7 +54,7 @@ const (
 	NetworkAttSubnetID                            = CloudAtt("SubnetId")
 	NetworkAttVPCID                               = CloudAtt("VpcId")
 
-	CIDRAllDestinations = "10.0.0.0/0"
+	CIDRAllDestinations = "0.0.0.0/0"
 	CIDRVPC             = "10.0.0.0/16"
 	CIDRSubnetPublicA   = "10.0.0.0/19"
 	CIDRSubnetPublicB   = "10.0.32.0/19"
