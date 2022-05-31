@@ -45,7 +45,6 @@ const (
 	HasuraRefRecordSet           = CloudRef("rs")
 	HasuraAttARN                 = CloudAtt("Arn")
 	HasuraAttIsDefault           = CloudAtt("IsDefault")
-	HasuraAttLoadBalancerARNs    = CloudAtt("LoadBalancerArns")
 	HasuraAttName                = CloudAtt("Name")
 	HasuraAttRoleID              = CloudAtt("RoleId")
 	HasuraAttRuleARN             = CloudAtt("RuleArn")
@@ -492,7 +491,6 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 		Tags:       CloudGetDefaultTags(HasuraRefTargetGroup.Name(p)),
 	}
 	CloudAddExpRef(tpl, p, HasuraRefTargetGroup)
-	CloudAddExpGetAtt(tpl, p, HasuraRefTargetGroup, HasuraAttLoadBalancerARNs)
 	CloudAddExpGetAtt(tpl, p, HasuraRefTargetGroup, HasuraAttTargetGroupFullName)
 	CloudAddExpGetAtt(tpl, p, HasuraRefTargetGroup, HasuraAttTargetGroupName)
 
