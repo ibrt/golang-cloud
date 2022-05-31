@@ -260,8 +260,8 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 		RouteTableId: gocf.Ref(NetworkRefRouteTablePublic.Ref()),
 		SubnetId:     gocf.Ref(NetworkRefSubnetPublicB.Ref()),
 	}
-	CloudAddExpRef(tpl, p, NetworkRefRouteTablePublic)
-	CloudAddExpGetAtt(tpl, p, NetworkRefRouteTablePublic, NetworkAttID)
+	CloudAddExpRef(tpl, p, NetworkRefSubnetRouteTableAssociationPublicB)
+	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetRouteTableAssociationPublicB, NetworkAttID)
 
 	tpl.Resources[NetworkRefEIPA.Ref()] = &goec2.EIP{
 		Domain: stringz.Ptr("vpc"),
