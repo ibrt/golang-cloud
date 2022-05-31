@@ -454,7 +454,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 		Cpu:              stringz.Ptr(fmt.Sprintf("%v", p.cfg.Cloud.CPU)),
 		ExecutionRoleArn: stringz.Ptr(gocf.Ref(HasuraRefRoleExecution.Ref())),
 		Family:           stringz.Ptr(HasuraRefTaskDefinition.Name(p)),
-		Memory:           stringz.Ptr(fmt.Sprintf("%v", p.cfg.Cloud.CPU)),
+		Memory:           stringz.Ptr(fmt.Sprintf("%v", p.cfg.Cloud.Memory)),
 		NetworkMode:      stringz.Ptr("awsvpc"),
 		RequiresCompatibilities: &[]string{
 			"FARGATE",
