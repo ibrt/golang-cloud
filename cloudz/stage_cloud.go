@@ -44,7 +44,7 @@ func NewCloudStage(cfg *CloudStageConfig) CloudStage {
 
 	for _, pluginGroup := range cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			plugin.Configure(stage)
+			// plugin.Configure(stage)
 
 			if stack := cfg.App.GetOperations().DescribeStack(CloudGetStackName(plugin)); stack != nil {
 				plugin.UpdateCloudMetadata(stack)
@@ -122,6 +122,7 @@ func (s *cloudStageImpl) GetArtifactsKeyPrefix(p Plugin, additionalParts ...stri
 func (s *cloudStageImpl) Deploy() {
 	for _, pluginGroup := range s.cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
+			plugin.Configure(s)
 			buildDirPath := s.cfg.App.GetConfig().GetBuildDirPathForPlugin(plugin)
 
 			tpl := plugin.GetCloudTemplate(buildDirPath)
