@@ -330,7 +330,7 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[NetworkRefSubnetRouteTableAssociationPrivateA.Ref()] = &goec2.SubnetRouteTableAssociation{
 		RouteTableId: gocf.Ref(NetworkRefRouteTablePrivateA.Ref()),
-		SubnetId:     gocf.Ref(NetworkRefSubnetPrivateA.Ref),
+		SubnetId:     gocf.Ref(NetworkRefSubnetPrivateA.Ref()),
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetRouteTableAssociationPrivateA)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetRouteTableAssociationPrivateA, NetworkAttID)
@@ -370,7 +370,7 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[NetworkRefSubnetRouteTableAssociationPrivateB.Ref()] = &goec2.SubnetRouteTableAssociation{
 		RouteTableId: gocf.Ref(NetworkRefRouteTablePrivateB.Ref()),
-		SubnetId:     gocf.Ref(NetworkRefSubnetPrivateB.Ref),
+		SubnetId:     gocf.Ref(NetworkRefSubnetPrivateB.Ref()),
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetRouteTableAssociationPrivateB)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetRouteTableAssociationPrivateB, NetworkAttID)
