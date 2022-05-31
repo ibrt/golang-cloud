@@ -272,10 +272,9 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[APIRefRecordSet.Ref()] = &goroute53.RecordSet{
 		AliasTarget: &goroute53.RecordSet_AliasTarget{
-			DNSName:      p.deps.Function.GetCloudMetadata(true).GetARN(),
-			HostedZoneId: p.deps.Certificate.GetConfig().Cloud.HostedZoneID,
+			DNSName:      gocf.GetAtt(APIRefDomainName.Ref(), APIAttRegionalDomainName.Ref()),
+			HostedZoneId: gocf.GetAtt(APIRefDomainName.Ref(), APIAttRegionalHostedZoneID.Ref()),
 		},
-		// TODO(ibrt): Figure out if we actually needed HostedZoneName instead.
 		HostedZoneId: stringz.Ptr(p.deps.Certificate.GetConfig().Cloud.HostedZoneID),
 		Name:         p.cfg.Cloud.DomainName,
 		Type:         "A",
