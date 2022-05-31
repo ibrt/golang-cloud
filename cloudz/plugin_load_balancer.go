@@ -27,7 +27,6 @@ const (
 	LoadBalancerAttDNSName                   = CloudAtt("DNSName")
 	LoadBalancerAttLoadBalancerFullName      = CloudAtt("LoadBalancerFullName")
 	LoadBalancerAttLoadBalancerName          = CloudAtt("LoadBalancerName")
-	LoadBalancerAttSecurityGroups            = CloudAtt("SecurityGroups")
 	LoadBalancerAttListenerArn               = CloudAtt("ListenerArn")
 )
 
@@ -196,7 +195,6 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 	CloudAddExpGetAtt(tpl, p, LoadBalancerRefLoadBalancer, LoadBalancerAttDNSName)
 	CloudAddExpGetAtt(tpl, p, LoadBalancerRefLoadBalancer, LoadBalancerAttLoadBalancerFullName)
 	CloudAddExpGetAtt(tpl, p, LoadBalancerRefLoadBalancer, LoadBalancerAttLoadBalancerName)
-	CloudAddExpGetAtt(tpl, p, LoadBalancerRefLoadBalancer, LoadBalancerAttSecurityGroups)
 
 	tpl.Resources[LoadBalancerRefListenerHTTP.Ref()] = &goelbv2.Listener{
 		DefaultActions: []goelbv2.Listener_Action{
