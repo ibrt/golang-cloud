@@ -499,7 +499,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 	tpl.Resources[HasuraRefListenerRule.Ref()] = &elbv2.ListenerRule{
 		Actions: []elbv2.ListenerRule_Action{
 			{
-				TargetGroupArn: stringz.Ptr(gocf.Ref(HasuraRefTargetGroup)),
+				TargetGroupArn: stringz.Ptr(gocf.Ref(HasuraRefTargetGroup.Ref())),
 				Type:           "forward",
 			},
 		},
