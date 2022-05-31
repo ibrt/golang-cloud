@@ -210,9 +210,9 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 		RoleName: stringz.Ptr(PostgresProxyRefRole.Name(p)),
 		Tags:     CloudGetDefaultTags(PostgresProxyRefRole.Name(p)),
 	}
-	CloudAddExpRef(tpl, p, PostgresProxyRefSecret)
-	CloudAddExpGetAtt(tpl, p, PostgresProxyRefSecret, PostgresProxyAttARN)
-	CloudAddExpGetAtt(tpl, p, PostgresProxyRefSecret, PostgresProxyAttRoleID)
+	CloudAddExpRef(tpl, p, PostgresProxyRefRole)
+	CloudAddExpGetAtt(tpl, p, PostgresProxyRefRole, PostgresProxyAttARN)
+	CloudAddExpGetAtt(tpl, p, PostgresProxyRefRole, PostgresProxyAttRoleID)
 
 	tpl.Resources[PostgresProxyRefLogGroup.Ref()] = &gologs.LogGroup{
 		LogGroupName:    stringz.Ptr(PostgresProxyRefLogGroup.Name(p)),
