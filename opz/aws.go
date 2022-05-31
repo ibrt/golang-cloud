@@ -71,14 +71,15 @@ func (o *operationsImpl) CreateStack(name string, templateBody string, tagsMap m
 		TemplateBody:     aws.String(templateBody),
 		TimeoutInMinutes: aws.Int32(30),
 	})
-	errorz.MaybeMustWrap(err)
+	errorz.MaybeMustWrap(err, errorz.M("stackName", name))
 
 	errorz.MaybeMustWrap(awscf.NewStackCreateCompleteWaiter(o.awsCF).Wait(
 		context.Background(),
 		&awscf.DescribeStacksInput{
 			StackName: aws.String(name),
 		},
-		30*time.Minute))
+		30*time.Minute),
+		errorz.M("stackName", name))
 
 	return o.DescribeStack(name)
 }
@@ -93,7 +94,7 @@ func (o *operationsImpl) DescribeStack(name string) *awscft.Stack {
 		if strings.Contains(err.Error(), "does not exist") {
 			return nil
 		}
-		errorz.MaybeMustWrap(err)
+		errorz.MaybeMustWrap(err, errorz.M("stackName", name))
 	}
 
 	errorz.Assertf(len(out.Stacks) == 1, "unexpected number of stacks")
@@ -124,7 +125,7 @@ func (o *operationsImpl) UpdateStack(name string, templateBody string, tagsMap m
 		if strings.Contains(err.Error(), "No updates are to be performed") {
 			return o.DescribeStack(name)
 		}
-		errorz.MaybeMustWrap(err)
+		errorz.MaybeMustWrap(err, errorz.M("stackName", name))
 	}
 
 	errorz.MaybeMustWrap(awscf.NewStackUpdateCompleteWaiter(o.awsCF).Wait(
@@ -132,7 +133,8 @@ func (o *operationsImpl) UpdateStack(name string, templateBody string, tagsMap m
 		&awscf.DescribeStacksInput{
 			StackName: aws.String(name),
 		},
-		30*time.Minute))
+		30*time.Minute),
+		errorz.M("stackName", name))
 
 	return o.DescribeStack(name)
 }
