@@ -40,7 +40,6 @@ const (
 	NetworkRefSecurityGroupIngress                = CloudRef("sgi")
 	NetworkAttAllocationID                        = CloudAtt("AllocationId")
 	NetworkAttCIDRBlock                           = CloudAtt("CidrBlock")
-	NetworkAttCIDRBlockAssociations               = CloudAtt("CidrBlockAssociations")
 	NetworkAttDefaultNetworkACL                   = CloudAtt("DefaultNetworkAcl")
 	NetworkAttDefaultSecurityGroup                = CloudAtt("DefaultSecurityGroup")
 	NetworkAttGroupID                             = CloudAtt("GroupId")
@@ -189,7 +188,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, NetworkRefVPC)
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttCIDRBlock)
-	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttCIDRBlockAssociations)
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttDefaultNetworkACL)
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttDefaultSecurityGroup)
 
