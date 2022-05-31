@@ -23,7 +23,7 @@ func (a CloudAtt) Name() string {
 
 // Ref returns a reference.
 func (a CloudAtt) Ref() string {
-	return string(a)
+	return strings.ReplaceAll(string(a), ".", "")
 }
 
 // CloudRef describes a cloud reference.
@@ -240,8 +240,6 @@ func CloudAddExpRef(tpl *gocf.Template, p Plugin, ref CloudRef) {
 
 // CloudAddExpGetAtt adds a get attribute export to the given template.
 func CloudAddExpGetAtt(tpl *gocf.Template, p Plugin, ref CloudRef, att CloudAtt) {
-	fmt.Println("XXX", ref.ExpAttName(p, att))
-
 	tpl.Outputs[ref.ExpAttRef(att)] = gocf.Output{
 		Value: gocf.GetAtt(ref.Ref(), att.Ref()),
 		Export: &gocf.Export{
