@@ -23,7 +23,7 @@ func (a CloudAtt) Name() string {
 
 // Ref returns a reference.
 func (a CloudAtt) Ref() string {
-	return strings.ReplaceAll(string(a), ".", "")
+	return string(a)
 }
 
 // CloudRef describes a cloud reference.
@@ -51,7 +51,7 @@ func (r CloudRef) ExpRefName(p Plugin) string {
 
 // ExpAttRef returns a reference to an attribute export.
 func (r CloudRef) ExpAttRef(att CloudAtt) string {
-	return (r + "-exp").Ref() + att.Ref()
+	return (r + "-exp").Ref() + strings.ReplaceAll(att.Ref(), ".", "")
 }
 
 // ExpAttName returns a name for an attribute export.
