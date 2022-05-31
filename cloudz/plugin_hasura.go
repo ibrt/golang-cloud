@@ -408,7 +408,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 						}
 
 						if p.cfg.Cloud.CORSDomain != nil && *p.cfg.Cloud.CORSDomain != "" {
-							e["HASURA_GRAPHQL_CORS_DOMAIN"] = *p.cfg.Cloud.CORSDomain
+							e["HASURA_GRAPHQL_CORS_DOMAIN"] = fmt.Sprintf("https://%v", *p.cfg.Cloud.CORSDomain)
 						}
 
 						for k, v := range p.cfg.Environment {
