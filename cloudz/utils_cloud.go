@@ -18,7 +18,7 @@ type CloudAtt string
 
 // Name returns a name.
 func (a CloudAtt) Name() string {
-	return strcase.ToSnake(string(a))
+	return strcase.ToKebab(string(a))
 }
 
 // Ref returns a reference.
