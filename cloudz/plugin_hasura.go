@@ -44,7 +44,6 @@ const (
 	HasuraRefService             = CloudRef("svc")
 	HasuraRefRecordSet           = CloudRef("rs")
 	HasuraAttARN                 = CloudAtt("Arn")
-	HasuraAttIsDefault           = CloudAtt("IsDefault")
 	HasuraAttName                = CloudAtt("Name")
 	HasuraAttRoleID              = CloudAtt("RoleId")
 	HasuraAttRuleARN             = CloudAtt("RuleArn")
@@ -515,7 +514,6 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 		Priority:    100,
 	}
 	CloudAddExpRef(tpl, p, HasuraRefListenerRule)
-	CloudAddExpGetAtt(tpl, p, HasuraRefListenerRule, HasuraAttIsDefault)
 	CloudAddExpGetAtt(tpl, p, HasuraRefListenerRule, HasuraAttRuleARN)
 
 	tpl.Resources[HasuraRefCluster.Ref()] = &goecs.Cluster{
