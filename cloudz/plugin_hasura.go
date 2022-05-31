@@ -385,7 +385,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 							"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup,http-log,webhook-log,websocket-log,query-log",
 							"HASURA_GRAPHQL_ENABLE_ALLOWLIST":          fmt.Sprintf("%v", p.cfg.EnableAllowList),
 							"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
-							"HASURA_GRAPHQL_ENABLE_MAINTENANCE_MODE":   "true",
+							"HASURA_GRAPHQL_ENABLE_MAINTENANCE_MODE":   "false",
 							"HASURA_GRAPHQL_ENABLE_TELEMETRY":          "false",
 							"HASURA_GRAPHQL_GRACEFUL_SHUTDOWN_TIMEOUT": "29",
 							"HASURA_GRAPHQL_SERVER_PORT":               fmt.Sprintf("%v", hasuraCloudPort),
