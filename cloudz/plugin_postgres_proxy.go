@@ -87,7 +87,7 @@ type PostgresProxy interface {
 	Plugin
 	GetConfig() *PostgresProxyConfig
 	GetLocalMetadata() *PostgresProxyLocalMetadata
-	GetCloudMetadata() *PostgresProxyCloudMetadata
+	GetCloudMetadata(require bool) *PostgresProxyCloudMetadata
 }
 
 type postgresProxyImpl struct {
@@ -161,8 +161,8 @@ func (p *postgresProxyImpl) GetLocalMetadata() *PostgresProxyLocalMetadata {
 }
 
 // GetCloudMetadata implements the PostgresProxy interface.
-func (p *postgresProxyImpl) GetCloudMetadata() *PostgresProxyCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(PostgresProxyPluginName))
+func (p *postgresProxyImpl) GetCloudMetadata(require bool) *PostgresProxyCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(PostgresProxyPluginName))
 	return p.cloudMetadata
 }
 
@@ -238,11 +238,11 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 		RequireTLS:   boolz.Ptr(true),
 		RoleArn:      gocf.GetAtt(PostgresProxyRefRole.Ref(), "Arn"),
 		VpcSecurityGroupIds: &[]string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 		},
 		VpcSubnetIds: []string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicA),
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicB),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicA),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicB),
 		},
 		Tags: &[]gords.DBProxy_TagFormat{
 			{
@@ -260,7 +260,7 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 			ConnectionBorrowTimeout: intz.Ptr(10),
 		},
 		DBInstanceIdentifiers: &[]string{
-			p.deps.Postgres.GetCloudMetadata().Exports.GetRef(PostgresRefDBInstance),
+			p.deps.Postgres.GetCloudMetadata(true).Exports.GetRef(PostgresRefDBInstance),
 		},
 		DBProxyName:     gocf.Ref(PostgresProxyRefDBProxy.Ref()),
 		TargetGroupName: "default",

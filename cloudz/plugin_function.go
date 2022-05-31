@@ -117,7 +117,7 @@ type Function interface {
 	GetConfig() *FunctionConfig
 	GetDependencies() *FunctionDependencies
 	GetLocalMetadata() *FunctionLocalMetadata
-	GetCloudMetadata() *FunctionCloudMetadata
+	GetCloudMetadata(require bool) *FunctionCloudMetadata
 }
 
 type functionImpl struct {
@@ -199,8 +199,8 @@ func (p *functionImpl) GetLocalMetadata() *FunctionLocalMetadata {
 }
 
 // GetCloudMetadata implements the Function interface.
-func (p *functionImpl) GetCloudMetadata() *FunctionCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(FunctionPluginName))
+func (p *functionImpl) GetCloudMetadata(require bool) *FunctionCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(FunctionPluginName))
 	return p.cloudMetadata
 }
 
@@ -274,7 +274,7 @@ func (p *functionImpl) GetCloudTemplate(_ string) *gocf.Template {
 			FunctionRefLogGroup.Ref(),
 		},
 		Code: &golambda.Function_Code{
-			S3Bucket: stringz.Ptr(p.deps.ArtifactsBucket.GetCloudMetadata().GetName()),
+			S3Bucket: stringz.Ptr(p.deps.ArtifactsBucket.GetCloudMetadata(true).GetName()),
 			S3Key:    stringz.Ptr(p.cfg.Stage.AsCloudStage().GetArtifactsKeyPrefix(p, FunctionPackageFileName)),
 		},
 		Environment: &golambda.Function_Environment{
@@ -296,11 +296,11 @@ func (p *functionImpl) GetCloudTemplate(_ string) *gocf.Template {
 			if network := p.deps.Network; network != nil {
 				return &golambda.Function_VpcConfig{
 					SecurityGroupIds: &[]string{
-						network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup),
+						network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 					},
 					SubnetIds: &[]string{
-						network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPrivateA),
-						network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPrivateB),
+						network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPrivateA),
+						network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPrivateB),
 					},
 				}
 			}
@@ -347,7 +347,7 @@ func (p *functionImpl) cloudBeforeDeployEventHook(buildDirPath string) {
 	packageContents := filez.MustReadFile(filepath.Join(buildDirPath, FunctionPackageFileName))
 
 	p.cfg.Stage.GetConfig().App.GetOperations().UploadFile(
-		p.deps.ArtifactsBucket.GetCloudMetadata().GetName(),
+		p.deps.ArtifactsBucket.GetCloudMetadata(true).GetName(),
 		p.cfg.Stage.AsCloudStage().GetArtifactsKeyPrefix(p, FunctionPackageFileName),
 		"application/zip",
 		packageContents)

@@ -93,7 +93,7 @@ type ImageRepository interface {
 	Plugin
 	GetConfig() *ImageRepositoryConfig
 	GetLocalMetadata() *ImageRepositoryLocalMetadata
-	GetCloudMetadata() *ImageRepositoryCloudMetadata
+	GetCloudMetadata(require bool) *ImageRepositoryCloudMetadata
 }
 
 type imageRepositoryImpl struct {
@@ -162,8 +162,8 @@ func (p *imageRepositoryImpl) GetLocalMetadata() *ImageRepositoryLocalMetadata {
 }
 
 // GetCloudMetadata implements the ImageRepository interface.
-func (p *imageRepositoryImpl) GetCloudMetadata() *ImageRepositoryCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(ImageRepositoryPluginName))
+func (p *imageRepositoryImpl) GetCloudMetadata(require bool) *ImageRepositoryCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(ImageRepositoryPluginName))
 	return p.cloudMetadata
 }
 

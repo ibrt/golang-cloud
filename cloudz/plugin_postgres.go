@@ -114,7 +114,7 @@ type Postgres interface {
 	GetConfig() *PostgresConfig
 	GetDependencies() *PostgresDependencies
 	GetLocalMetadata() *PostgresLocalMetadata
-	GetCloudMetadata() *PostgresCloudMetadata
+	GetCloudMetadata(require bool) *PostgresCloudMetadata
 }
 
 type postgresImpl struct {
@@ -192,8 +192,8 @@ func (p *postgresImpl) GetLocalMetadata() *PostgresLocalMetadata {
 }
 
 // GetCloudMetadata implements the Postgres interface.
-func (p *postgresImpl) GetCloudMetadata() *PostgresCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(PostgresPluginName))
+func (p *postgresImpl) GetCloudMetadata(require bool) *PostgresCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(PostgresPluginName))
 	return p.cloudMetadata
 }
 
@@ -290,8 +290,8 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DBSubnetGroupDescription: PostgresRefDBSubnetGroup.Name(p),
 		DBSubnetGroupName:        stringz.Ptr(PostgresRefDBSubnetGroup.Name(p)),
 		SubnetIds: []string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicA),
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicB),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicA),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicB),
 		},
 		Tags: CloudGetDefaultTags(PostgresRefDBSubnetGroup.Name(p)),
 	}
@@ -339,7 +339,7 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 		PubliclyAccessible:         boolz.Ptr(true),
 		StorageEncrypted:           boolz.Ptr(true),
 		VPCSecurityGroups: &[]string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 		},
 		Tags: CloudGetDefaultTags(PostgresRefDBInstance.Name(p)),
 	}

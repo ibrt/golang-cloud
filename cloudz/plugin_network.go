@@ -103,7 +103,7 @@ type NetworkCloudMetadata struct {
 type Network interface {
 	Plugin
 	GetConfig() *NetworkConfig
-	GetCloudMetadata() *NetworkCloudMetadata
+	GetCloudMetadata(require bool) *NetworkCloudMetadata
 }
 
 type networkImpl struct {
@@ -165,8 +165,8 @@ func (p *networkImpl) GetConfig() *NetworkConfig {
 }
 
 // GetCloudMetadata implements the Network interface.
-func (p *networkImpl) GetCloudMetadata() *NetworkCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(NetworkPluginName))
+func (p *networkImpl) GetCloudMetadata(require bool) *NetworkCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(NetworkPluginName))
 	return p.cloudMetadata
 }
 

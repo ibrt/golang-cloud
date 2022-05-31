@@ -151,7 +151,7 @@ type Hasura interface {
 	GetConfig() *HasuraConfig
 	GetDependencies() *HasuraDependencies
 	GetLocalMetadata() *HasuraLocalMetadata
-	GetCloudMetadata() *HasuraCloudMetadata
+	GetCloudMetadata(require bool) *HasuraCloudMetadata
 	ApplyLocalMetadata()
 }
 
@@ -234,8 +234,8 @@ func (p *hasuraImpl) GetLocalMetadata() *HasuraLocalMetadata {
 }
 
 // GetCloudMetadata implements the Hasura interface.
-func (p *hasuraImpl) GetCloudMetadata() *HasuraCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(HasuraPluginName))
+func (p *hasuraImpl) GetCloudMetadata(require bool) *HasuraCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(HasuraPluginName))
 	return p.cloudMetadata
 }
 
@@ -381,7 +381,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 					func() map[string]string {
 						e := map[string]string{
 							"HASURA_GRAPHQL_ADMIN_SECRET":              p.cfg.Cloud.AdminSecret,
-							"HASURA_GRAPHQL_DATABASE_URL":              p.deps.Postgres.GetCloudMetadata().URL.String(),
+							"HASURA_GRAPHQL_DATABASE_URL":              p.deps.Postgres.GetCloudMetadata(true).URL.String(),
 							"HASURA_GRAPHQL_DEV_MODE":                  "false",
 							"HASURA_GRAPHQL_ENABLED_APIS":              "graphql",
 							"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup,http-log,webhook-log,websocket-log,query-log",
@@ -420,7 +420,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 						return e
 					}()),
 				Image: stringz.Ptr(fmt.Sprintf("%v:%v",
-					p.deps.ImageRepository.GetCloudMetadata().ImageName,
+					p.deps.ImageRepository.GetCloudMetadata(true).ImageName,
 					p.cfg.Stage.AsCloudStage().GetCloudConfig().Version)),
 				LogConfiguration: &goecs.TaskDefinition_LogConfiguration{
 					LogDriver: "awslogs",
@@ -488,7 +488,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 			},
 		},
 		TargetType: stringz.Ptr("ip"),
-		VpcId:      stringz.Ptr(p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefVPC)),
+		VpcId:      stringz.Ptr(p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefVPC)),
 		Tags:       CloudGetDefaultTags(HasuraRefTargetGroup.Name(p)),
 	}
 	CloudAddExpRef(tpl, p, HasuraRefTargetGroup)
@@ -513,7 +513,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 				},
 			},
 		},
-		ListenerArn: p.deps.LoadBalancer.GetCloudMetadata().Exports.GetAtt(LoadBalancerRefListenerHTTPS, LoadBalancerAttListenerArn),
+		ListenerArn: p.deps.LoadBalancer.GetCloudMetadata(true).Exports.GetAtt(LoadBalancerRefListenerHTTPS, LoadBalancerAttListenerArn),
 		Priority:    100,
 	}
 	CloudAddExpRef(tpl, p, HasuraRefListenerRule)
@@ -571,11 +571,11 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 			AwsvpcConfiguration: &goecs.Service_AwsVpcConfiguration{
 				AssignPublicIp: stringz.Ptr("DISABLED"),
 				SecurityGroups: &[]string{
-					p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup),
+					p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 				},
 				Subnets: &[]string{
-					p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPrivateA),
-					p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPrivateB),
+					p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPrivateA),
+					p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPrivateB),
 				},
 			},
 		},
@@ -589,8 +589,8 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[HasuraRefRecordSet.Ref()] = &goroute53.RecordSet{
 		AliasTarget: &goroute53.RecordSet_AliasTarget{
-			DNSName:      p.deps.LoadBalancer.GetCloudMetadata().Exports.GetAtt(LoadBalancerRefLoadBalancer, LoadBalancerAttDNSName),
-			HostedZoneId: p.deps.LoadBalancer.GetCloudMetadata().Exports.GetAtt(LoadBalancerRefLoadBalancer, LoadBalancerAttCanonicalHostedZoneID),
+			DNSName:      p.deps.LoadBalancer.GetCloudMetadata(true).Exports.GetAtt(LoadBalancerRefLoadBalancer, LoadBalancerAttDNSName),
+			HostedZoneId: p.deps.LoadBalancer.GetCloudMetadata(true).Exports.GetAtt(LoadBalancerRefLoadBalancer, LoadBalancerAttCanonicalHostedZoneID),
 		},
 		HostedZoneId: stringz.Ptr(p.deps.Certificate.GetConfig().Cloud.HostedZoneID),
 		Name:         p.cfg.Cloud.DomainName,
@@ -667,7 +667,7 @@ func (p *hasuraImpl) localAfterCreateEventHook() {
 func (p *hasuraImpl) cloudBeforeDeployEventHook(buildDirPath string) {
 	filez.MustPrepareDir(buildDirPath, 0777)
 
-	imageWithTag := p.deps.ImageRepository.GetCloudMetadata().ImageName + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
+	imageWithTag := p.deps.ImageRepository.GetCloudMetadata(true).ImageName + ":" + p.cfg.Stage.AsCloudStage().GetCloudConfig().Version
 	cfgDirPath := p.cfg.Stage.GetConfig().App.GetConfig().GetConfigDirPathForPlugin(p, hasuraConfigDirParts...)
 
 	filez.MustWriteFile(

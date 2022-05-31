@@ -68,7 +68,7 @@ type CertificateCloudMetadata struct {
 type Certificate interface {
 	Plugin
 	GetConfig() *CertificateConfig
-	GetCloudMetadata() *CertificateCloudMetadata
+	GetCloudMetadata(require bool) *CertificateCloudMetadata
 }
 
 type certificateImpl struct {
@@ -130,8 +130,8 @@ func (p *certificateImpl) GetConfig() *CertificateConfig {
 }
 
 // GetCloudMetadata implements the Certificate interface.
-func (p *certificateImpl) GetCloudMetadata() *CertificateCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(CertificatePluginName))
+func (p *certificateImpl) GetCloudMetadata(require bool) *CertificateCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(CertificatePluginName))
 	return p.cloudMetadata
 }
 

@@ -44,7 +44,7 @@ func NewCloudStage(cfg *CloudStageConfig) CloudStage {
 
 	for _, pluginGroup := range cfg.App.GetSortedPlugins() {
 		for _, plugin := range pluginGroup {
-			// plugin.Configure(stage)
+			plugin.Configure(stage)
 
 			if stack := cfg.App.GetOperations().DescribeStack(CloudGetStackName(plugin)); stack != nil {
 				plugin.UpdateCloudMetadata(stack)

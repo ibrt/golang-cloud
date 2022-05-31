@@ -112,7 +112,7 @@ type API interface {
 	Plugin
 	GetConfig() *APIConfig
 	GetLocalMetadata() *APILocalMetadata
-	GetCloudMetadata() *APICloudMetadata
+	GetCloudMetadata(require bool) *APICloudMetadata
 }
 
 type apiImpl struct {
@@ -186,8 +186,8 @@ func (p *apiImpl) GetLocalMetadata() *APILocalMetadata {
 }
 
 // GetCloudMetadata implements the API interface.
-func (p *apiImpl) GetCloudMetadata() *APICloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(APIPluginName))
+func (p *apiImpl) GetCloudMetadata(require bool) *APICloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(APIPluginName))
 	return p.cloudMetadata
 }
 
@@ -248,7 +248,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[APIRefPermission.Ref()] = &golambda.Permission{
 		Action:       "lambda:InvokeFunction",
-		FunctionName: p.deps.Function.GetCloudMetadata().GetARN(),
+		FunctionName: p.deps.Function.GetCloudMetadata(true).GetARN(),
 		Principal:    "apigateway.amazonaws.com",
 		SourceArn: stringz.Ptr(gocf.Join("", []string{
 			gocf.Sub("arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:"),
@@ -261,7 +261,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DomainName: p.cfg.Cloud.DomainName,
 		DomainNameConfigurations: &[]goapigwv2.DomainName_DomainNameConfiguration{
 			{
-				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().ARN),
+				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata(true).ARN),
 				EndpointType:   stringz.Ptr("REGIONAL"),
 			},
 		},
@@ -272,7 +272,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 
 	tpl.Resources[APIRefRecordSet.Ref()] = &goroute53.RecordSet{
 		AliasTarget: &goroute53.RecordSet_AliasTarget{
-			DNSName:      p.deps.Function.GetCloudMetadata().GetARN(),
+			DNSName:      p.deps.Function.GetCloudMetadata(true).GetARN(),
 			HostedZoneId: p.deps.Certificate.GetConfig().Cloud.HostedZoneID,
 		},
 		// TODO(ibrt): Figure out if we actually needed HostedZoneName instead.
@@ -303,7 +303,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 	tpl.Resources[APIRefIntegration.Ref()] = &goapigwv2.Integration{
 		ApiId:                gocf.Ref(APIRefAPI.Ref()),
 		IntegrationType:      "AWS_PROXY",
-		IntegrationUri:       stringz.Ptr(p.deps.Function.GetCloudMetadata().GetARN()),
+		IntegrationUri:       stringz.Ptr(p.deps.Function.GetCloudMetadata(true).GetARN()),
 		PayloadFormatVersion: stringz.Ptr("2.0"),
 		TimeoutInMillis:      intz.Ptr(29000),
 	}

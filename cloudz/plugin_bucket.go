@@ -111,7 +111,7 @@ type Bucket interface {
 	Plugin
 	GetConfig() *BucketConfig
 	GetLocalMetadata() *BucketLocalMetadata
-	GetCloudMetadata() *BucketCloudMetadata
+	GetCloudMetadata(require bool) *BucketCloudMetadata
 }
 
 type bucketImpl struct {
@@ -180,8 +180,8 @@ func (p *bucketImpl) GetLocalMetadata() *BucketLocalMetadata {
 }
 
 // GetCloudMetadata implements the Bucket interface.
-func (p *bucketImpl) GetCloudMetadata() *BucketCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(BucketPluginDisplayName))
+func (p *bucketImpl) GetCloudMetadata(require bool) *BucketCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(BucketPluginDisplayName))
 	return p.cloudMetadata
 }
 

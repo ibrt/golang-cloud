@@ -75,7 +75,7 @@ type LoadBalancer interface {
 	Plugin
 	GetConfig() *LoadBalancerConfig
 	GetDependencies() *LoadBalancerDependencies
-	GetCloudMetadata() *LoadBalancerCloudMetadata
+	GetCloudMetadata(require bool) *LoadBalancerCloudMetadata
 }
 
 type loadBalancerImpl struct {
@@ -147,8 +147,8 @@ func (p *loadBalancerImpl) GetDependencies() *LoadBalancerDependencies {
 }
 
 // GetCloudMetadata implements the LoadBalancer interface.
-func (p *loadBalancerImpl) GetCloudMetadata() *LoadBalancerCloudMetadata {
-	errorz.Assertf(p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(LoadBalancerPluginName))
+func (p *loadBalancerImpl) GetCloudMetadata(require bool) *LoadBalancerCloudMetadata {
+	errorz.Assertf(!require || p.cloudMetadata != nil, "cloud not deployed", errorz.Prefix(LoadBalancerPluginName))
 	return p.cloudMetadata
 }
 
@@ -182,11 +182,11 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 		Name:   stringz.Ptr(LoadBalancerRefLoadBalancer.Name(p)),
 		Scheme: stringz.Ptr("internet-facing"),
 		SecurityGroups: &[]string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 		},
 		Subnets: &[]string{
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicA),
-			p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSubnetPublicB),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicA),
+			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSubnetPublicB),
 		},
 		Type: stringz.Ptr("application"),
 		Tags: CloudGetDefaultTags(LoadBalancerRefLoadBalancer.Name(p)),
@@ -222,7 +222,7 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 	tpl.Resources[LoadBalancerRefListenerHTTPS.Ref()] = &goelbv2.Listener{
 		Certificates: &[]goelbv2.Listener_Certificate{
 			{
-				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata().ARN),
+				CertificateArn: stringz.Ptr(p.deps.Certificate.GetCloudMetadata(true).ARN),
 			},
 		},
 		DefaultActions: []goelbv2.Listener_Action{
@@ -243,7 +243,7 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 	CloudAddExpGetAtt(tpl, p, LoadBalancerRefListenerHTTPS, LoadBalancerAttListenerArn)
 
 	tpl.Resources[LoadBalancerRefSecurityGroupIngressHTTP.Ref()] = &goec2.SecurityGroupIngress{
-		GroupId:    stringz.Ptr(p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup)),
+		GroupId:    stringz.Ptr(p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup)),
 		IpProtocol: "tcp",
 		FromPort:   intz.Ptr(80),
 		ToPort:     intz.Ptr(80),
@@ -251,7 +251,7 @@ func (p *loadBalancerImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 
 	tpl.Resources[LoadBalancerRefSecurityGroupIngressHTTPS.Ref()] = &goec2.SecurityGroupIngress{
-		GroupId:    stringz.Ptr(p.deps.Network.GetCloudMetadata().Exports.GetRef(NetworkRefSecurityGroup)),
+		GroupId:    stringz.Ptr(p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup)),
 		IpProtocol: "tcp",
 		FromPort:   intz.Ptr(443),
 		ToPort:     intz.Ptr(443),
