@@ -46,7 +46,6 @@ const (
 	NetworkAttDefaultSecurityGroup                = CloudAtt("DefaultSecurityGroup")
 	NetworkAttGroupID                             = CloudAtt("GroupId")
 	NetworkAttID                                  = CloudAtt("Id")
-	NetworkAttIPv6CIDRBlocks                      = CloudAtt("Ipv6CidrBlocks")
 	NetworkAttInternetGatewayID                   = CloudAtt("InternetGatewayId")
 	NetworkAttNetworkACLAssociationID             = CloudAtt("NetworkAclAssociationId")
 	NetworkAttOutpostARN                          = CloudAtt("OutpostArn")
@@ -195,7 +194,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttCIDRBlockAssociations)
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttDefaultNetworkACL)
 	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttDefaultSecurityGroup)
-	CloudAddExpGetAtt(tpl, p, NetworkRefVPC, NetworkAttIPv6CIDRBlocks)
 
 	tpl.Resources[NetworkRefInternetGateway.Ref()] = &goec2.InternetGateway{
 		Tags: CloudGetDefaultTags(NetworkRefInternetGateway.Name(p)),
@@ -235,7 +233,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetPublicA)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicA, NetworkAttAvailabilityZone)
-	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicA, NetworkAttIPv6CIDRBlocks)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicA, NetworkAttNetworkACLAssociationID)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicA, NetworkAttOutpostARN)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicA, NetworkAttSubnetID)
@@ -257,7 +254,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetPublicB)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicB, NetworkAttAvailabilityZone)
-	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicB, NetworkAttIPv6CIDRBlocks)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicB, NetworkAttNetworkACLAssociationID)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicB, NetworkAttOutpostARN)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPublicB, NetworkAttSubnetID)
@@ -322,7 +318,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetPrivateA)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateA, NetworkAttAvailabilityZone)
-	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateA, NetworkAttIPv6CIDRBlocks)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateA, NetworkAttNetworkACLAssociationID)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateA, NetworkAttOutpostARN)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateA, NetworkAttSubnetID)
@@ -362,7 +357,6 @@ func (p *networkImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 	CloudAddExpRef(tpl, p, NetworkRefSubnetPrivateB)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateB, NetworkAttAvailabilityZone)
-	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateB, NetworkAttIPv6CIDRBlocks)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateB, NetworkAttNetworkACLAssociationID)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateB, NetworkAttOutpostARN)
 	CloudAddExpGetAtt(tpl, p, NetworkRefSubnetPrivateB, NetworkAttSubnetID)
