@@ -13,7 +13,7 @@ type CloudStageConfig struct {
 	*StageConfig `validate:"required"`
 	Name         string    `validate:"required,resource-name"`
 	Version      string    `validate:"required"`
-	Mode         StageMode `validate:"required,oneof=production|staging"`
+	Mode         StageMode `validate:"required,oneof=production staging"`
 }
 
 // MustValidate validates the cloud stage config.
