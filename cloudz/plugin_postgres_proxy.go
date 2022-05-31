@@ -261,7 +261,7 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DBInstanceIdentifiers: &[]string{
 			p.deps.Postgres.GetCloudMetadata(true).Exports.GetRef(PostgresRefDBInstance),
 		},
-		DBProxyName:     PostgresProxyRefDBProxy.Name(p),
+		DBProxyName:     gocf.Ref(PostgresProxyRefDBProxy.Ref()),
 		TargetGroupName: "default",
 	}
 	CloudAddExpRef(tpl, p, PostgresProxyRefDBProxyTargetGroup)
