@@ -235,7 +235,7 @@ func (p *postgresProxyImpl) GetCloudTemplate(_ string) *gocf.Template {
 		DebugLogging: boolz.Ptr(p.cfg.Stage.GetMode().IsStaging()),
 		EngineFamily: "POSTGRESQL",
 		RequireTLS:   boolz.Ptr(true),
-		RoleArn:      gocf.GetAtt(PostgresProxyRefRole.Ref(), "Arn"),
+		RoleArn:      gocf.GetAtt(PostgresProxyRefRole.Ref(), PostgresProxyAttARN.Ref()),
 		VpcSecurityGroupIds: &[]string{
 			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 		},
