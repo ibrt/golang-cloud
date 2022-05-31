@@ -243,7 +243,9 @@ func (p *imageRepositoryImpl) GetCloudTemplate(_ string) *gocf.Template {
 			}
 
 			return &goecr.Repository_LifecyclePolicy{
-				LifecyclePolicyText: stringz.Ptr(jsonz.MustMarshalIndentDefaultString(rules)),
+				LifecyclePolicyText: stringz.Ptr(jsonz.MustMarshalIndentDefaultString(map[string]interface{}{
+					"rules": rules,
+				})),
 			}
 		}(),
 		RepositoryName: stringz.Ptr(ImageRepositoryRefRepository.Name(p)),
