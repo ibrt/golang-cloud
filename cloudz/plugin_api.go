@@ -252,7 +252,7 @@ func (p *apiImpl) GetCloudTemplate(_ string) *gocf.Template {
 		Principal:    "apigateway.amazonaws.com",
 		SourceArn: stringz.Ptr(gocf.Join("", []string{
 			gocf.Sub("arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:"),
-			gocf.Ref(APIRefAPI.Ref),
+			gocf.Ref(APIRefAPI.Ref()),
 			"/*/*",
 		})),
 	}
