@@ -354,11 +354,11 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 		rdsDBInstance.MultiAZ = boolz.Ptr(true)
 		rdsDBInstance.StorageType = stringz.Ptr("gp2")
 	} else {
-		rdsDBInstance.AllocatedStorage = stringz.Ptr("5")
+		rdsDBInstance.AllocatedStorage = stringz.Ptr("20")
 		rdsDBInstance.AvailabilityZone = stringz.Ptr(p.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region + "a")
 		rdsDBInstance.BackupRetentionPeriod = intz.Ptr(1)
-		rdsDBInstance.DBInstanceClass = "db.t3.micro"
-		rdsDBInstance.StorageType = stringz.Ptr("standard")
+		rdsDBInstance.DBInstanceClass = "db.t4g.small"
+		rdsDBInstance.StorageType = stringz.Ptr("gp2")
 	}
 
 	tpl.Resources[PostgresRefDBInstance.Ref()] = rdsDBInstance
