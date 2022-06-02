@@ -320,8 +320,10 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 		AWSCloudFormationDependsOn: []string{
 			PostgresRefLogGroup.Ref(),
 		},
+		AllocatedStorage:        stringz.Ptr(fmt.Sprintf("%v", p.cfg.Cloud.AllocatedStorageGBs)),
 		AutoMinorVersionUpgrade: boolz.Ptr(false),
 		CopyTagsToSnapshot:      boolz.Ptr(true),
+		DBInstanceClass:         p.cfg.Cloud.InstanceClass,
 		DBInstanceIdentifier:    stringz.Ptr(PostgresRefDBInstance.Name(p)),
 		DBName:                  stringz.Ptr(p.cfg.Stage.GetName()),
 		DBParameterGroupName:    stringz.Ptr(gocf.Ref(PostgresRefDBParameterGroup.Ref())),
@@ -338,6 +340,7 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 		PreferredMaintenanceWindow: stringz.Ptr("wed:10:00-wed:12:00"),
 		PubliclyAccessible:         boolz.Ptr(true),
 		StorageEncrypted:           boolz.Ptr(true),
+		StorageType:                stringz.Ptr("gp2"),
 		VPCSecurityGroups: &[]string{
 			p.deps.Network.GetCloudMetadata(true).Exports.GetRef(NetworkRefSecurityGroup),
 		},
@@ -345,20 +348,14 @@ func (p *postgresImpl) GetCloudTemplate(_ string) *gocf.Template {
 	}
 
 	if p.cfg.Stage.GetMode().IsProduction() {
-		rdsDBInstance.AllocatedStorage = stringz.Ptr(fmt.Sprintf("%v", p.cfg.Cloud.AllocatedStorageGBs))
 		rdsDBInstance.BackupRetentionPeriod = intz.Ptr(30)
-		rdsDBInstance.DBInstanceClass = p.cfg.Cloud.InstanceClass
 		rdsDBInstance.EnablePerformanceInsights = boolz.Ptr(true)
 		rdsDBInstance.MonitoringInterval = intz.Ptr(60)
 		rdsDBInstance.MonitoringRoleArn = stringz.Ptr(gocf.GetAtt(PostgresRefRoleMonitoring.Ref(), "Arn"))
 		rdsDBInstance.MultiAZ = boolz.Ptr(true)
-		rdsDBInstance.StorageType = stringz.Ptr("gp2")
 	} else {
-		rdsDBInstance.AllocatedStorage = stringz.Ptr("20")
 		rdsDBInstance.AvailabilityZone = stringz.Ptr(p.cfg.Stage.GetConfig().App.GetConfig().AWSConfig.Region + "a")
 		rdsDBInstance.BackupRetentionPeriod = intz.Ptr(1)
-		rdsDBInstance.DBInstanceClass = "db.t4g.small"
-		rdsDBInstance.StorageType = stringz.Ptr("gp2")
 	}
 
 	tpl.Resources[PostgresRefDBInstance.Ref()] = rdsDBInstance
