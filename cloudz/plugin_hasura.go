@@ -397,7 +397,7 @@ func (p *hasuraImpl) GetCloudTemplate(_ string) *gocf.Template {
 							}),
 							"HASURA_GRAPHQL_LOG_LEVEL": func() string {
 								if p.cfg.Stage.GetMode().IsProduction() {
-									return "warning"
+									return "warn"
 								}
 								return "debug"
 							}(),
