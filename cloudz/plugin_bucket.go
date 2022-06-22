@@ -221,6 +221,14 @@ func (p *bucketImpl) UpdateLocalTemplate(tpl *dctypes.Config, _ string) {
 	tpl.Services = append(tpl.Services, dctypes.ServiceConfig{
 		Name:          containerName,
 		ContainerName: containerName,
+		Deploy: dctypes.DeployConfig{
+			Resources: dctypes.Resources{
+				Limits: &dctypes.ResourceLimit{
+					MemoryBytes: 512 * 1024 * 1024,
+				},
+				Reservations: nil,
+			},
+		},
 		Environment: map[string]*string{
 			"MINIO_ROOT_USER":       stringz.Ptr(LocalAWSAccessKeyID),
 			"MINIO_ROOT_PASSWORD":   stringz.Ptr(LocalAWSSecretAccessKey),
